@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Schedina — Gestione Scommesse</title>
 <style>
   :root{
@@ -30,81 +30,62 @@
     color:var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height:1.4;
+    -webkit-tap-highlight-color: transparent;
   }
   header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:18px 24px;
-    border-bottom:1px solid var(--line);
-    position:sticky; top:0; background:var(--bg); z-index:10;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 18px; border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--bg); z-index:10; gap:10px; flex-wrap:wrap;
   }
-  header h1{
-    font-size:19px;
-    font-weight:650;
-    margin:0;
-    letter-spacing:-.2px;
-  }
-  nav{display:flex; gap:6px;}
+  header h1{ font-size:18px; font-weight:650; margin:0; letter-spacing:-.2px; display:flex; align-items:center; gap:8px; }
+  .sync-dot{width:7px; height:7px; border-radius:50%; background:var(--pending);}
+  .sync-dot.ok{background:var(--win);}
+  .sync-dot.err{background:var(--lose);}
+  nav{display:flex; gap:6px; flex-wrap:wrap;}
   nav button{
-    background:transparent;
-    border:1px solid var(--line);
-    color:var(--text-dim);
-    padding:8px 14px;
-    border-radius:8px;
-    font-size:14px;
-    cursor:pointer;
-    transition:.15s;
+    background:transparent; border:1px solid var(--line); color:var(--text-dim);
+    padding:9px 14px; border-radius:8px; font-size:14px; cursor:pointer; transition:.15s;
   }
-  nav button.active{
-    background:var(--panel-2);
-    color:var(--text);
-    border-color:#37485c;
-  }
-  main{max-width:960px; margin:0 auto; padding:24px; padding-bottom:80px;}
+  nav button.active{ background:var(--panel-2); color:var(--text); border-color:#37485c; }
+  main{max-width:960px; margin:0 auto; padding:18px; padding-bottom:90px;}
   section{display:none;}
   section.active{display:block;}
 
-  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
-  @media (max-width:720px){ .grid3{grid-template-columns:1fr;} }
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+  @media (max-width:720px){ .grid3{grid-template-columns:1fr;} main{padding:14px; padding-bottom:100px;} }
 
-  .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:16px 18px;
-  }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; }
   .tip-card{border-top:3px solid transparent;}
   .tip-ing{border-top-color:var(--ing); background:linear-gradient(180deg, var(--ing-bg), var(--panel) 60%);}
   .tip-vincent{border-top-color:var(--vincent); background:linear-gradient(180deg, var(--vincent-bg), var(--panel) 60%);}
   .tip-tu{border-top-color:var(--tu); background:linear-gradient(180deg, var(--tu-bg), var(--panel) 60%);}
 
   .tip-card h3{margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:8px;}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block; flex-shrink:0;}
   .dot-ing{background:var(--ing);} .dot-vincent{background:var(--vincent);} .dot-tu{background:var(--tu);}
 
-  .tip-card .row{display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); padding:3px 0;}
-  .tip-card .row span:last-child{color:var(--text);}
-  .tip-card .total{margin-top:10px; padding-top:10px; border-top:1px solid var(--line); display:flex; justify-content:space-between; font-weight:600;}
+  .budget-row{margin:8px 0;}
+  .budget-row .lbl{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim); margin-bottom:4px;}
+  .budget-row .lbl b{color:var(--text); font-weight:600;}
+  .bar-track{height:5px; border-radius:4px; background:var(--panel-2); overflow:hidden;}
+  .bar-fill{height:100%; border-radius:4px;}
+  .tip-card .total{margin-top:12px; padding-top:10px; border-top:1px solid var(--line); display:flex; justify-content:space-between; font-weight:650; font-size:14px;}
+  .tip-card .total.over{color:var(--lose);}
 
-  .bankroll{margin-top:18px; display:flex; gap:24px; flex-wrap:wrap; align-items:flex-end;}
-  .bankroll .big{font-size:34px; font-weight:650; letter-spacing:-.5px;}
+  .bankroll{margin-top:18px; display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end;}
+  .bankroll .big{font-size:32px; font-weight:650; letter-spacing:-.5px;}
   .bankroll label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;}
-  .bankroll input{
-    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
-    padding:7px 10px; border-radius:7px; font-size:14px; width:120px;
-  }
+  .bankroll input{ background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:7px; font-size:14px; width:120px; }
 
-  h2.section-title{font-size:14px; color:var(--text-dim); font-weight:600; margin:28px 0 12px;}
+  h2.section-title{font-size:13px; color:var(--text-dim); font-weight:600; margin:26px 0 12px;}
 
-  /* --- Insert form --- */
   .insert-card{display:flex; flex-direction:column; gap:14px;}
   .field-row{display:flex; gap:14px; flex-wrap:wrap;}
   .field{flex:1; min-width:140px;}
   .field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px;}
   .field input, .field select{
     width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
-    padding:9px 10px; border-radius:8px; font-size:14px;
+    padding:11px 10px; border-radius:8px; font-size:15px;
   }
   .dropzone{
     border:1.5px dashed var(--line); border-radius:10px; padding:22px; text-align:center;
@@ -112,33 +93,54 @@
   }
   .dropzone:hover{border-color:#3a4c60; color:var(--text);}
   .dropzone.busy{opacity:.6; pointer-events:none;}
-  .ocr-status{font-size:12px; color:var(--text-dim); min-height:16px;}
+  .ocr-status{font-size:12px; color:var(--text-dim); min-height:16px; margin-top:8px;}
+  .ocr-banner{
+    display:none; margin-top:10px; padding:12px 14px; border-radius:9px;
+    background:rgba(46,194,126,.1); border:1px solid rgba(46,194,126,.4);
+    font-size:13.5px; color:var(--win); font-weight:600; align-items:center; gap:8px;
+  }
+  .ocr-banner.show{display:flex;}
+  .ocr-banner.warn{ background:rgba(224,180,0,.1); border-color:rgba(224,180,0,.4); color:var(--vincent); }
   .btn{
-    background:var(--tu); color:#08150e; border:none; padding:10px 18px; border-radius:8px;
-    font-size:14px; font-weight:600; cursor:pointer; align-self:flex-start;
+    background:var(--tu); color:#08150e; border:none; padding:12px 18px; border-radius:8px;
+    font-size:15px; font-weight:650; cursor:pointer; align-self:flex-start;
   }
   .btn:hover{filter:brightness(1.08);}
+  .btn:disabled{opacity:.5; cursor:default;}
   .btn.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--line);}
   .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
 
-  /* --- Tables --- */
-  .tip-block{margin-bottom:26px;}
-  .tip-block h3{font-size:15px; margin:0 0 8px; display:flex; align-items:center; gap:8px;}
-  table{width:100%; border-collapse:collapse; font-size:13px;}
-  th{
-    text-align:left; color:var(--text-dim); font-weight:500; font-size:11px;
-    text-transform:none; padding:6px 8px; border-bottom:1px solid var(--line);
+  .filter-bar{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .filter-bar button{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 14px; border-radius:20px; font-size:13px; cursor:pointer;
   }
-  td{padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
-  tr:last-child td{border-bottom:none;}
-  td select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:5px 6px; font-size:12.5px;}
-  .num{text-align:right; font-variant-numeric:tabular-nums;}
-  .empty-row td{color:var(--text-dim); font-style:normal; text-align:center; padding:14px;}
+  .filter-bar button.active{ background:var(--panel-2); color:var(--text); border-color:#37485c; }
 
-  /* toggle esito */
+  .tip-block{margin-bottom:22px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);}
+  .tip-block-head{
+    display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
+    background:var(--panel-2); flex-wrap:wrap; gap:6px;
+  }
+  .tip-block-head .name{display:flex; align-items:center; gap:8px; font-size:15px; font-weight:650;}
+  .tip-block-head .mini-stats{display:flex; gap:14px; font-size:12px; color:var(--text-dim);}
+  .tip-block-head .mini-stats b{color:var(--text);}
+  .tip-block-ing .tip-block-head{border-left:4px solid var(--ing);}
+  .tip-block-vincent .tip-block-head{border-left:4px solid var(--vincent);}
+  .tip-block-tu .tip-block-head{border-left:4px solid var(--tu);}
+  .tip-block table{background:var(--panel);}
+
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{ text-align:left; color:var(--text-dim); font-weight:500; font-size:11px; padding:8px 12px; border-bottom:1px solid var(--line); }
+  td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  td select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:6px 7px; font-size:12.5px;}
+  .num{text-align:right; font-variant-numeric:tabular-nums;}
+  .empty-row td{color:var(--text-dim); font-style:normal; text-align:center; padding:16px;}
+
   .toggle{
-    display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
-    padding:5px 10px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--line);
+    display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;
+    padding:6px 11px; border-radius:20px; font-size:12px; font-weight:650; border:1px solid var(--line);
   }
   .toggle .knob{width:9px; height:9px; border-radius:50%;}
   .toggle.pending{color:var(--text-dim);}
@@ -148,66 +150,55 @@
   .toggle.lose{color:var(--lose); background:rgba(240,85,59,.1); border-color:rgba(240,85,59,.35);}
   .toggle.lose .knob{background:var(--lose);}
 
-  .result.win{color:var(--win); font-weight:600;}
-  .result.lose{color:var(--lose); font-weight:600;}
+  .result.win{color:var(--win); font-weight:650;}
+  .result.lose{color:var(--lose); font-weight:650;}
   .result.pending{color:var(--text-dim);}
 
-  .del{background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:15px; padding:0 4px;}
+  .del{background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:17px; padding:4px 6px;}
   .del:hover{color:var(--lose);}
 
-  /* stats */
-  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px;}
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;}
   @media (max-width:720px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
   .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
   .stat .label{font-size:11.5px; color:var(--text-dim); margin-bottom:6px;}
-  .stat .value{font-size:20px; font-weight:650;}
+  .stat .value{font-size:19px; font-weight:650;}
 
   footer.tools{
     position:fixed; bottom:0; left:0; right:0; background:var(--panel); border-top:1px solid var(--line);
-    padding:10px 20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+    padding:10px 14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
   }
-  footer.tools button, footer.tools label{font-size:12.5px;}
+  footer.tools button, footer.tools label{font-size:12px; padding:9px 12px;}
   input[type=file]#import-input{display:none;}
+
+  @media (max-width:640px){
+    .tip-block table thead{display:none;}
+    .tip-block table, .tip-block tbody, .tip-block tr, .tip-block td{display:block; width:100%;}
+    .tip-block tr{padding:10px 12px; border-bottom:1px solid var(--line);}
+    .tip-block td{border:none; padding:4px 0; display:flex; justify-content:space-between; align-items:center;}
+    .tip-block td.num{text-align:right;}
+    .tip-block td::before{content:attr(data-label); color:var(--text-dim); font-size:11.5px; margin-right:10px;}
+    .tip-block td select{max-width:170px;}
+    .tip-block td:last-child{justify-content:flex-end;}
+    .tip-block td:last-child::before{content:'';}
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Schedina</h1>
+  <h1>Schedina <span class="sync-dot" id="sync-dot" title="Stato Supabase"></span></h1>
   <nav>
     <button data-tab="dashboard" class="active">Budget</button>
     <button data-tab="insert">Inserisci</button>
     <button data-tab="stats">Storico</button>
+    <button data-tab="settings">Impostazioni</button>
   </nav>
 </header>
 
 <main>
 
-  <!-- ============ TAB 1: DASHBOARD ============ -->
   <section id="tab-dashboard" class="active">
-    <div class="grid3">
-      <div class="card tip-card tip-ing">
-        <h3><span class="dot dot-ing"></span>Ing</h3>
-        <div class="row"><span>Singola/Doppia</span><span>23,00 €</span></div>
-        <div class="row"><span>Quota ~5</span><span>9,00 €</span></div>
-        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
-        <div class="total"><span>Max giorno</span><span>35,00 €</span></div>
-      </div>
-      <div class="card tip-card tip-vincent">
-        <h3><span class="dot dot-vincent"></span>Vincent</h3>
-        <div class="row"><span>Singola/Doppia</span><span>20,00 €</span></div>
-        <div class="row"><span>Quota ~5</span><span>7,00 €</span></div>
-        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
-        <div class="total"><span>Max giorno</span><span>30,00 €</span></div>
-      </div>
-      <div class="card tip-card tip-tu">
-        <h3><span class="dot dot-tu"></span>Tu (Matteo)</h3>
-        <div class="row"><span>Singola/Doppia</span><span>23,00 €</span></div>
-        <div class="row"><span>Quota ~5</span><span>9,00 €</span></div>
-        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
-        <div class="total"><span>Max giorno</span><span>35,00 €</span></div>
-      </div>
-    </div>
+    <div class="grid3" id="budget-cards"></div>
 
     <h2 class="section-title">Bankroll</h2>
     <div class="card">
@@ -230,12 +221,8 @@
         Massimo teorico giornaliero combinato: <strong style="color:var(--text)">100,00 €</strong> (35 + 30 + 35)
       </div>
     </div>
-
-    <h2 class="section-title">Speso oggi</h2>
-    <div class="grid3" id="today-usage"></div>
   </section>
 
-  <!-- ============ TAB 2: INSERT ============ -->
   <section id="tab-insert">
     <div class="card insert-card">
       <div class="field-row">
@@ -255,19 +242,20 @@
 
       <div class="field">
         <label>Screenshot schedina (estrae Quota Totale e Importo automaticamente)</label>
-        <div class="dropzone" id="dropzone">Trascina l'immagine qui o clicca per caricarla</div>
+        <div class="dropzone" id="dropzone">Trascina l'immagine qui o tocca per caricarla</div>
         <input type="file" id="file-input" accept="image/*" style="display:none;">
         <div class="ocr-status" id="ocr-status"></div>
+        <div class="ocr-banner" id="ocr-banner"></div>
       </div>
 
       <div class="field-row">
         <div class="field">
           <label>Quota totale</label>
-          <input type="number" id="f-quota" step="0.01" placeholder="es. 3.42">
+          <input type="number" id="f-quota" step="0.01" placeholder="es. 3.42" inputmode="decimal">
         </div>
         <div class="field">
           <label>Importo (€)</label>
-          <input type="number" id="f-importo" step="0.01" placeholder="es. 15.00">
+          <input type="number" id="f-importo" step="0.01" placeholder="es. 15.00" inputmode="decimal">
         </div>
         <div class="field">
           <label>Categoria</label>
@@ -283,10 +271,22 @@
     </div>
   </section>
 
-  <!-- ============ TAB 3: STORICO ============ -->
   <section id="tab-stats">
+    <div class="filter-bar" id="filter-bar">
+      <button data-range="day" class="active">Giorno</button>
+      <button data-range="week">Settimana</button>
+      <button data-range="month">Mese</button>
+      <button data-range="all">Tutto</button>
+    </div>
     <div class="stat-grid" id="stat-grid"></div>
     <div id="tables-container"></div>
+  </section>
+
+  <section id="tab-settings">
+    <div class="card">
+      <h3 style="margin-top:0;">Dati</h3>
+      <p style="color:var(--text-dim); font-size:13.5px; margin-bottom:0;">I dati sono salvati su Supabase (progetto collegato). Usa Esporta/Importa qui sotto per fare backup locali.</p>
+    </div>
   </section>
 
 </main>
@@ -297,50 +297,106 @@
   <button class="btn ghost" id="reset-btn" style="color:var(--lose); border-color:rgba(240,85,59,.35);">Reset dati</button>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-/* ===================== DATA LAYER ===================== */
-const STORAGE_KEY = 'schedina_tracker_v1';
+/* ===================== SUPABASE ===================== */
+const SUPABASE_URL = 'https://wdinlazhjtgkrkxdzyoa.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_8M06uMtcNiEPLeX_5SY9Sg_Qubg_MSt';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 const TIPSTERS = ['Tu','Ing','Vincent'];
+const BUDGETS = {
+  Ing:     {'Singola/Doppia':23, 'Multipla Quota 5':9, 'Multipla Quota 10':3, total:35},
+  Vincent: {'Singola/Doppia':20, 'Multipla Quota 5':7, 'Multipla Quota 10':3, total:30},
+  Tu:      {'Singola/Doppia':23, 'Multipla Quota 5':9, 'Multipla Quota 10':3, total:35},
+};
+const CATS = ['Singola/Doppia','Multipla Quota 5','Multipla Quota 10'];
 
-function loadData(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){ try{ return JSON.parse(raw); }catch(e){ /* fallthrough */ } }
-  return {
-    bankroll: { start: 290, startDate: todayISO() },
-    bets: { Tu: [], Ing: [], Vincent: [] }
-  };
-}
-function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let state = { bankroll: { start: 290, startDate: '2026-09-11' }, bets: { Tu: [], Ing: [], Vincent: [] } };
+let currentRange = 'day';
+
 function todayISO(){ return new Date().toISOString().slice(0,10); }
+function setSync(status){
+  const dot = document.getElementById('sync-dot');
+  dot.className = 'sync-dot ' + (status==='ok' ? 'ok' : status==='err' ? 'err' : '');
+}
 
-let state = loadData();
+/* ---- fetch everything from Supabase into local `state` ---- */
+async function fetchAll(){
+  setSync('loading');
+  try{
+    const [{ data: br, error: e1 }, { data: rows, error: e2 }] = await Promise.all([
+      sb.from('bankroll').select('*').eq('id', 1).maybeSingle(),
+      sb.from('bets').select('*').order('data', { ascending: false })
+    ]);
+    if(e1) throw e1;
+    if(e2) throw e2;
+    state.bankroll = br ? { start: Number(br.start_amount), startDate: br.start_date } : state.bankroll;
+    state.bets = { Tu: [], Ing: [], Vincent: [] };
+    (rows||[]).forEach(r=>{
+      if(!state.bets[r.tipster]) return;
+      state.bets[r.tipster].push({ id: r.id, date: r.data, categoria: r.categoria, quota: Number(r.quota), importo: Number(r.importo), esito: r.esito });
+    });
+    setSync('ok');
+  }catch(err){
+    console.error(err);
+    setSync('err');
+    alert('Non riesco a leggere i dati da Supabase: ' + (err.message || err));
+  }
+}
+
+async function dbInsertBet(tipster, date, categoria, quota, importo){
+  const { data, error } = await sb.from('bets')
+    .insert({ tipster, data: date, categoria, quota, importo, esito: 'pending' })
+    .select().single();
+  if(error){ alert('Errore salvataggio: ' + error.message); return null; }
+  return data;
+}
+async function dbUpdateBet(id, fields){
+  const { error } = await sb.from('bets').update(fields).eq('id', id);
+  if(error){ alert('Errore aggiornamento: ' + error.message); return false; }
+  return true;
+}
+async function dbDeleteBet(id){
+  const { error } = await sb.from('bets').delete().eq('id', id);
+  if(error){ alert('Errore eliminazione: ' + error.message); return false; }
+  return true;
+}
+async function dbSaveBankroll(start, startDate){
+  const { error } = await sb.from('bankroll').upsert({ id: 1, start_amount: start, start_date: startDate });
+  if(error){ alert('Errore salvataggio bankroll: ' + error.message); return false; }
+  return true;
+}
 
 /* ===================== HELPERS ===================== */
 function parseNumberIT(str){
   if(str === null || str === undefined) return null;
   str = String(str).trim().replace(/[€\s]/g,'');
-  if(str.includes(',') && str.includes('.')){
-    str = str.replace(/\./g,'').replace(',', '.');
-  } else if(str.includes(',')){
-    str = str.replace(',', '.');
-  }
+  if(str.includes(',') && str.includes('.')){ str = str.replace(/\./g,'').replace(',', '.'); }
+  else if(str.includes(',')){ str = str.replace(',', '.'); }
   const n = parseFloat(str);
   return isNaN(n) ? null : n;
 }
-function fmtEUR(n){
-  const sign = n < 0 ? '-' : '';
-  return sign + Math.abs(n).toFixed(2).replace('.', ',') + ' €';
-}
+function fmtEUR(n){ const sign = n < 0 ? '-' : ''; return sign + Math.abs(n).toFixed(2).replace('.', ',') + ' €'; }
 function categoryFor(quota){
   if(quota < 2.5) return 'Singola/Doppia';
   if(quota < 7) return 'Multipla Quota 5';
   return 'Multipla Quota 10';
 }
 function betResult(bet){
-  if(bet.esito === 'win') return bet.quota * bet.importo;
+  if(bet.esito === 'win') return bet.importo * (bet.quota - 1);
   if(bet.esito === 'lose') return -bet.importo;
   return 0;
+}
+function inRange(dateStr, range){
+  if(range === 'all') return true;
+  const d = new Date(dateStr+'T00:00:00');
+  const now = new Date(); now.setHours(0,0,0,0);
+  if(range === 'day') return dateStr === todayISO();
+  if(range === 'week'){ const diff = (now - d)/86400000; return diff >= 0 && diff < 7; }
+  if(range === 'month'){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }
+  return true;
 }
 
 /* ===================== TABS ===================== */
@@ -365,29 +421,49 @@ function renderDashboard(){
   const saldo = state.bankroll.start + net;
   document.getElementById('saldo-attuale').textContent = fmtEUR(saldo);
 
-  const maxByTip = {Ing:35, Vincent:30, Tu:35};
   const today = todayISO();
-  const container = document.getElementById('today-usage');
+  const container = document.getElementById('budget-cards');
   container.innerHTML = '';
+  const colorCls = {Ing:'tip-ing', Vincent:'tip-vincent', Tu:'tip-tu'};
+  const dotCls = {Ing:'dot-ing', Vincent:'dot-vincent', Tu:'dot-tu'};
+  const barCol = {Ing:'var(--ing)', Vincent:'var(--vincent)', Tu:'var(--tu)'};
+  const labelName = {Ing:'Ing', Vincent:'Vincent', Tu:'Tu (Matteo)'};
+
   TIPSTERS.forEach(t=>{
-    const speso = state.bets[t].filter(b=>b.date===today).reduce((s,b)=>s+b.importo,0);
-    const max = maxByTip[t];
-    const cls = t==='Ing' ? 'tip-ing' : t==='Vincent' ? 'tip-vincent' : 'tip-tu';
-    const dotCls = t==='Ing' ? 'dot-ing' : t==='Vincent' ? 'dot-vincent' : 'dot-tu';
+    const budget = BUDGETS[t];
+    const todaysBets = state.bets[t].filter(b=>b.date===today);
+    let totalSpent = 0;
+    const rowsHtml = CATS.map(cat=>{
+      const spent = todaysBets.filter(b=>b.categoria===cat).reduce((s,b)=>s+b.importo,0);
+      totalSpent += spent;
+      const max = budget[cat];
+      const pct = Math.min(100, (spent/max)*100);
+      const over = spent > max;
+      return `
+        <div class="budget-row">
+          <div class="lbl"><span>${cat}</span><b style="${over?'color:var(--lose)':''}">${fmtEUR(spent)} / ${fmtEUR(max)}</b></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%; background:${over?'var(--lose)':barCol[t]}"></div></div>
+        </div>`;
+    }).join('');
+    const over = totalSpent > budget.total;
     const div = document.createElement('div');
-    div.className = 'card tip-card ' + cls;
+    div.className = 'card tip-card ' + colorCls[t];
     div.innerHTML = `
-      <h3><span class="dot ${dotCls}"></span>${t==='Tu'?'Tu (Matteo)':t}</h3>
-      <div class="total"><span>Speso oggi</span><span>${fmtEUR(speso)} / ${fmtEUR(max)}</span></div>
+      <h3><span class="dot ${dotCls[t]}"></span>${labelName[t]}</h3>
+      ${rowsHtml}
+      <div class="total ${over?'over':''}"><span>Rimane oggi</span><span>${fmtEUR(Math.max(0,budget.total-totalSpent))} di ${fmtEUR(budget.total)}</span></div>
     `;
     container.appendChild(div);
   });
 }
-document.getElementById('save-bankroll').addEventListener('click', ()=>{
-  state.bankroll.start = parseFloat(document.getElementById('start-amount').value) || 0;
-  state.bankroll.startDate = document.getElementById('start-date').value || todayISO();
-  saveData();
-  renderDashboard();
+document.getElementById('save-bankroll').addEventListener('click', async ()=>{
+  const start = parseFloat(document.getElementById('start-amount').value) || 0;
+  const startDate = document.getElementById('start-date').value || todayISO();
+  const btn = document.getElementById('save-bankroll');
+  btn.disabled = true;
+  const ok = await dbSaveBankroll(start, startDate);
+  if(ok){ state.bankroll.start = start; state.bankroll.startDate = startDate; renderDashboard(); }
+  btn.disabled = false;
 });
 
 /* ===================== INSERT ===================== */
@@ -397,16 +473,14 @@ const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('file-input');
 dropzone.addEventListener('click', ()=>fileInput.click());
 dropzone.addEventListener('dragover', e=>{e.preventDefault(); dropzone.style.borderColor='#3a4c60';});
-dropzone.addEventListener('drop', e=>{
-  e.preventDefault();
-  if(e.dataTransfer.files.length) handleImage(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', ()=>{
-  if(fileInput.files.length) handleImage(fileInput.files[0]);
-});
+dropzone.addEventListener('drop', e=>{ e.preventDefault(); if(e.dataTransfer.files.length) handleImage(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', ()=>{ if(fileInput.files.length) handleImage(fileInput.files[0]); });
 
 async function handleImage(file){
   const status = document.getElementById('ocr-status');
+  const banner = document.getElementById('ocr-banner');
+  banner.className = 'ocr-banner';
+  banner.textContent = '';
   dropzone.classList.add('busy');
   status.textContent = 'Lettura immagine in corso…';
   try{
@@ -422,13 +496,18 @@ async function handleImage(file){
     }
     if(importo !== null) document.getElementById('f-importo').value = importo;
 
+    status.textContent = '';
     if(quota === null && importo === null){
-      status.textContent = 'Non ho trovato "Quota Totale" / "Importo" nel testo — inserisci i valori a mano.';
+      banner.classList.add('show','warn');
+      banner.innerHTML = '⚠️ Non ho trovato "Quota Totale" / "Importo" nel testo — inserisci i valori a mano qui sotto.';
     } else {
-      status.textContent = `Estratti — Quota: ${quota ?? '—'}, Importo: ${importo ?? '—'}. Controlla prima di aggiungere.`;
+      banner.classList.add('show');
+      banner.innerHTML = `✓ Rilevati dall'immagine — Quota totale: <u>${quota ?? '?'}</u> · Importo: <u>${importo!==null ? fmtEUR(importo) : '?'}</u>. Controlla i campi qui sotto prima di aggiungere.`;
     }
   }catch(err){
-    status.textContent = 'Errore lettura immagine, inserisci i valori a mano.';
+    status.textContent = '';
+    banner.classList.add('show','warn');
+    banner.innerHTML = "⚠️ Errore nella lettura dell'immagine, inserisci i valori a mano.";
   }
   dropzone.classList.remove('busy');
 }
@@ -438,97 +517,111 @@ document.getElementById('f-quota').addEventListener('input', (e)=>{
   if(!isNaN(q)) document.getElementById('f-categoria').value = categoryFor(q);
 });
 
-document.getElementById('add-bet').addEventListener('click', ()=>{
+document.getElementById('add-bet').addEventListener('click', async ()=>{
   const tipster = document.getElementById('f-tipster').value;
   const date = document.getElementById('f-date').value || todayISO();
   const quota = parseFloat(document.getElementById('f-quota').value);
   const importo = parseFloat(document.getElementById('f-importo').value);
   const categoria = document.getElementById('f-categoria').value;
 
-  if(isNaN(quota) || isNaN(importo)){
-    alert('Inserisci quota e importo validi.');
-    return;
-  }
+  if(isNaN(quota) || isNaN(importo)){ alert('Inserisci quota e importo validi.'); return; }
 
-  state.bets[tipster].push({
-    id: Date.now() + Math.random().toString(16).slice(2),
-    date, categoria, quota, importo, esito: 'pending'
-  });
-  saveData();
+  const addBtn = document.getElementById('add-bet');
+  addBtn.disabled = true;
+  const row = await dbInsertBet(tipster, date, categoria, quota, importo);
+  addBtn.disabled = false;
+  if(!row) return;
+
+  state.bets[tipster].push({ id: row.id, date: row.data, categoria: row.categoria, quota: Number(row.quota), importo: Number(row.importo), esito: row.esito });
 
   document.getElementById('f-quota').value = '';
   document.getElementById('f-importo').value = '';
-  document.getElementById('ocr-status').textContent = 'Aggiunta ✓';
-  setTimeout(()=>{ document.getElementById('ocr-status').textContent=''; }, 1500);
+  const banner = document.getElementById('ocr-banner');
+  banner.className = 'ocr-banner show';
+  banner.innerHTML = '✓ Schedina aggiunta e salvata — budget aggiornato.';
+  setTimeout(()=>{ banner.className='ocr-banner'; banner.innerHTML=''; }, 2200);
+  renderDashboard();
+});
+
+/* ===================== FILTER BAR ===================== */
+document.getElementById('filter-bar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-range]');
+  if(!btn) return;
+  document.querySelectorAll('#filter-bar button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentRange = btn.dataset.range;
+  renderStats();
 });
 
 /* ===================== STATS / TABLES ===================== */
-function nextEsito(e){
-  return e === 'pending' ? 'win' : e === 'win' ? 'lose' : 'pending';
-}
-function esitoLabel(e){
-  return e === 'win' ? 'Vinta' : e === 'lose' ? 'Persa' : 'In attesa';
-}
+function nextEsito(e){ return e === 'pending' ? 'win' : e === 'win' ? 'lose' : 'pending'; }
+function esitoLabel(e){ return e === 'win' ? 'Vinta' : e === 'lose' ? 'Persa' : 'In attesa'; }
 
 function renderStats(){
-  // top stat cards
-  let staked=0, wonGross=0, wins=0, losses=0, pending=0, count=0;
-  TIPSTERS.forEach(t=> state.bets[t].forEach(b=>{
-    count++;
-    staked += b.importo;
-    if(b.esito==='win'){ wins++; wonGross += b.quota*b.importo; }
-    else if(b.esito==='lose'){ losses++; }
-    else pending++;
-  }));
-  const net = wonGross - (staked - state.bets.__dummy ? 0 : 0); // placeholder, recompute below properly
-  let netProfit = 0;
-  TIPSTERS.forEach(t=> state.bets[t].forEach(b=> netProfit += betResult(b)));
+  let staked=0, wins=0, losses=0, pending=0, count=0, netProfit=0;
+  const filtered = {};
+  TIPSTERS.forEach(t=>{
+    filtered[t] = state.bets[t].filter(b=>inRange(b.date, currentRange));
+    filtered[t].forEach(b=>{
+      count++; staked += b.importo;
+      if(b.esito==='win') wins++; else if(b.esito==='lose') losses++; else pending++;
+      netProfit += betResult(b);
+    });
+  });
 
   const grid = document.getElementById('stat-grid');
   grid.innerHTML = `
-    <div class="stat"><div class="label">Schedine totali</div><div class="value">${count}</div></div>
-    <div class="stat"><div class="label">Puntato totale</div><div class="value">${fmtEUR(staked)}</div></div>
+    <div class="stat"><div class="label">Schedine</div><div class="value">${count}</div></div>
+    <div class="stat"><div class="label">Puntato</div><div class="value">${fmtEUR(staked)}</div></div>
     <div class="stat"><div class="label">Vinte / Perse / Attesa</div><div class="value">${wins} / ${losses} / ${pending}</div></div>
-    <div class="stat"><div class="label">Risultato netto</div><div class="value" style="color:${netProfit>=0?'var(--win)':'var(--lose)'}">${fmtEUR(netProfit)}</div></div>
+    <div class="stat"><div class="label">Netto</div><div class="value" style="color:${netProfit>=0?'var(--win)':'var(--lose)'}">${fmtEUR(netProfit)}</div></div>
   `;
 
   const container = document.getElementById('tables-container');
   container.innerHTML = '';
+  const dotCls = {Ing:'dot-ing', Vincent:'dot-vincent', Tu:'dot-tu'};
+  const blockCls = {Ing:'tip-block-ing', Vincent:'tip-block-vincent', Tu:'tip-block-tu'};
+  const labelName = {Ing:'Ing', Vincent:'Vincent', Tu:'Tu (Matteo)'};
+
   TIPSTERS.forEach(t=>{
-    const dotCls = t==='Ing' ? 'dot-ing' : t==='Vincent' ? 'dot-vincent' : 'dot-tu';
+    const bets = filtered[t].slice().sort((a,b)=> b.date.localeCompare(a.date));
+    const tStaked = bets.reduce((s,b)=>s+b.importo,0);
+    const tNet = bets.reduce((s,b)=>s+betResult(b),0);
     const block = document.createElement('div');
-    block.className = 'tip-block';
-    const bets = state.bets[t].slice().sort((a,b)=> b.date.localeCompare(a.date));
+    block.className = 'tip-block ' + blockCls[t];
     block.innerHTML = `
-      <h3><span class="dot ${dotCls}"></span>${t==='Tu'?'Tu (Matteo)':t}</h3>
+      <div class="tip-block-head">
+        <div class="name"><span class="dot ${dotCls[t]}"></span>${labelName[t]}</div>
+        <div class="mini-stats">
+          <span>Schedine: <b>${bets.length}</b></span>
+          <span>Puntato: <b>${fmtEUR(tStaked)}</b></span>
+          <span>Netto: <b style="color:${tNet>=0?'var(--win)':'var(--lose)'}">${fmtEUR(tNet)}</b></span>
+        </div>
+      </div>
       <table>
         <thead><tr>
-          <th>Data</th><th>Categ. Scommessa</th><th>Quota</th><th>Importo</th><th>Esito</th><th>Risultato</th><th></th>
+          <th>Data</th><th>Categ. Scommessa</th><th>Quota</th><th>Importo</th><th>Esito</th><th>Netto</th><th></th>
         </tr></thead>
         <tbody>
-          ${bets.length===0 ? `<tr class="empty-row"><td colspan="7">Nessuna schedina inserita</td></tr>` :
+          ${bets.length===0 ? `<tr class="empty-row"><td colspan="7">Nessuna schedina in questo periodo</td></tr>` :
             bets.map(b=>{
               const res = betResult(b);
               const resClass = b.esito==='win' ? 'win' : b.esito==='lose' ? 'lose' : 'pending';
-              const resText = b.esito==='pending' ? '—' : (res>=0? '+':'') + fmtEUR(res).replace('-','');
+              const resText = b.esito==='pending' ? '—' : (res>=0?'+':'-') + fmtEUR(Math.abs(res)).replace('- ','');
               return `
               <tr data-id="${b.id}" data-tipster="${t}">
-                <td>${b.date}</td>
-                <td>
+                <td data-label="Data">${b.date}</td>
+                <td data-label="Categoria">
                   <select class="cat-select">
-                    <option ${b.categoria==='Singola/Doppia'?'selected':''}>Singola/Doppia</option>
-                    <option ${b.categoria==='Multipla Quota 5'?'selected':''}>Multipla Quota 5</option>
-                    <option ${b.categoria==='Multipla Quota 10'?'selected':''}>Multipla Quota 10</option>
+                    ${CATS.map(c=>`<option ${b.categoria===c?'selected':''}>${c}</option>`).join('')}
                   </select>
                 </td>
-                <td class="num">${b.quota}</td>
-                <td class="num">${fmtEUR(b.importo)}</td>
-                <td>
-                  <span class="toggle ${resClass}">
-                    <span class="knob"></span>${esitoLabel(b.esito)}
-                  </span>
+                <td class="num" data-label="Quota">${b.quota}</td>
+                <td class="num" data-label="Importo">${fmtEUR(b.importo)}</td>
+                <td data-label="Esito">
+                  <span class="toggle ${resClass}"><span class="knob"></span>${esitoLabel(b.esito)}</span>
                 </td>
-                <td class="num result ${resClass}">${b.esito==='pending' ? '—' : (b.esito==='win'?'+':'-') + fmtEUR(Math.abs(res)).replace('- ','')}</td>
+                <td class="num result ${resClass}" data-label="Netto">${resText}</td>
                 <td><button class="del" title="Elimina">✕</button></td>
               </tr>`;
             }).join('')
@@ -539,27 +632,24 @@ function renderStats(){
     container.appendChild(block);
   });
 
-  // wire up interactions
   container.querySelectorAll('tr[data-id]').forEach(row=>{
     const id = row.dataset.id, tip = row.dataset.tipster;
-    row.querySelector('.toggle').addEventListener('click', ()=>{
+    row.querySelector('.toggle').addEventListener('click', async ()=>{
       const bet = state.bets[tip].find(b=>b.id===id);
-      bet.esito = nextEsito(bet.esito);
-      saveData();
-      renderStats();
-      renderDashboard();
+      const newEsito = nextEsito(bet.esito);
+      const ok = await dbUpdateBet(id, { esito: newEsito });
+      if(ok){ bet.esito = newEsito; renderStats(); renderDashboard(); }
     });
-    row.querySelector('.cat-select').addEventListener('change', (e)=>{
+    row.querySelector('.cat-select').addEventListener('change', async (e)=>{
       const bet = state.bets[tip].find(b=>b.id===id);
-      bet.categoria = e.target.value;
-      saveData();
+      const newCat = e.target.value;
+      const ok = await dbUpdateBet(id, { categoria: newCat });
+      if(ok){ bet.categoria = newCat; renderDashboard(); }
     });
-    row.querySelector('.del').addEventListener('click', ()=>{
+    row.querySelector('.del').addEventListener('click', async ()=>{
       if(!confirm('Eliminare questa schedina?')) return;
-      state.bets[tip] = state.bets[tip].filter(b=>b.id!==id);
-      saveData();
-      renderStats();
-      renderDashboard();
+      const ok = await dbDeleteBet(id);
+      if(ok){ state.bets[tip] = state.bets[tip].filter(b=>b.id!==id); renderStats(); renderDashboard(); }
     });
   });
 }
@@ -569,41 +659,51 @@ document.getElementById('export-btn').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `schedina-backup-${todayISO()}.json`;
-  a.click();
+  a.href = url; a.download = `schedina-backup-${todayISO()}.json`; a.click();
   URL.revokeObjectURL(url);
 });
-document.getElementById('import-input').addEventListener('change', (e)=>{
+document.getElementById('import-input').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ()=>{
+  reader.onload = async ()=>{
     try{
       const imported = JSON.parse(reader.result);
-      if(imported.bankroll && imported.bets){
-        state = imported;
-        saveData();
-        renderDashboard();
-        renderStats();
-        alert('Dati importati.');
-      } else {
-        alert('File non valido.');
+      if(!imported.bankroll || !imported.bets){ alert('File non valido.'); return; }
+      if(!confirm('Questo sostituirà i dati attuali su Supabase con quelli del file. Continuare?')) return;
+
+      await sb.from('bets').delete().in('tipster', TIPSTERS);
+      await dbSaveBankroll(imported.bankroll.start, imported.bankroll.startDate);
+
+      const rowsToInsert = [];
+      TIPSTERS.forEach(t=>{
+        (imported.bets[t]||[]).forEach(b=>{
+          rowsToInsert.push({ tipster: t, data: b.date, categoria: b.categoria, quota: b.quota, importo: b.importo, esito: b.esito || 'pending' });
+        });
+      });
+      if(rowsToInsert.length){
+        const { error } = await sb.from('bets').insert(rowsToInsert);
+        if(error){ alert('Errore import: ' + error.message); }
       }
+      await fetchAll();
+      renderDashboard(); renderStats();
+      alert('Dati importati su Supabase.');
     }catch(err){ alert('Errore nel file JSON.'); }
   };
   reader.readAsText(file);
 });
-document.getElementById('reset-btn').addEventListener('click', ()=>{
-  if(!confirm('Cancellare TUTTI i dati salvati in locale?')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = loadData();
-  renderDashboard();
-  renderStats();
+document.getElementById('reset-btn').addEventListener('click', async ()=>{
+  if(!confirm('Cancellare TUTTE le schedine salvate su Supabase?')) return;
+  await sb.from('bets').delete().in('tipster', TIPSTERS);
+  await fetchAll();
+  renderDashboard(); renderStats();
 });
 
 /* ===================== INIT ===================== */
-renderDashboard();
+(async function init(){
+  await fetchAll();
+  renderDashboard();
+})();
 </script>
 </body>
 </html>
