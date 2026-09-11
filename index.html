@@ -1,14 +1,609 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La mia pagina</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schedina — Gestione Scommesse</title>
+<style>
+  :root{
+    --bg: #0f1620;
+    --panel: #16202c;
+    --panel-2: #1c2836;
+    --line: #263241;
+    --text: #e8edf3;
+    --text-dim: #8fa0b3;
+    --ing: #3b8ef0;
+    --ing-bg: rgba(59,142,240,.12);
+    --vincent: #e0b400;
+    --vincent-bg: rgba(224,180,0,.12);
+    --tu: #2ec27e;
+    --tu-bg: rgba(46,194,126,.12);
+    --win: #2ec27e;
+    --lose: #f0553b;
+    --pending: #5a6b7d;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height:1.4;
+  }
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:18px 24px;
+    border-bottom:1px solid var(--line);
+    position:sticky; top:0; background:var(--bg); z-index:10;
+  }
+  header h1{
+    font-size:19px;
+    font-weight:650;
+    margin:0;
+    letter-spacing:-.2px;
+  }
+  nav{display:flex; gap:6px;}
+  nav button{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  nav button.active{
+    background:var(--panel-2);
+    color:var(--text);
+    border-color:#37485c;
+  }
+  main{max-width:960px; margin:0 auto; padding:24px; padding-bottom:80px;}
+  section{display:none;}
+  section.active{display:block;}
+
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:720px){ .grid3{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .tip-card{border-top:3px solid transparent;}
+  .tip-ing{border-top-color:var(--ing); background:linear-gradient(180deg, var(--ing-bg), var(--panel) 60%);}
+  .tip-vincent{border-top-color:var(--vincent); background:linear-gradient(180deg, var(--vincent-bg), var(--panel) 60%);}
+  .tip-tu{border-top-color:var(--tu); background:linear-gradient(180deg, var(--tu-bg), var(--panel) 60%);}
+
+  .tip-card h3{margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:8px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dot-ing{background:var(--ing);} .dot-vincent{background:var(--vincent);} .dot-tu{background:var(--tu);}
+
+  .tip-card .row{display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); padding:3px 0;}
+  .tip-card .row span:last-child{color:var(--text);}
+  .tip-card .total{margin-top:10px; padding-top:10px; border-top:1px solid var(--line); display:flex; justify-content:space-between; font-weight:600;}
+
+  .bankroll{margin-top:18px; display:flex; gap:24px; flex-wrap:wrap; align-items:flex-end;}
+  .bankroll .big{font-size:34px; font-weight:650; letter-spacing:-.5px;}
+  .bankroll label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:4px;}
+  .bankroll input{
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:7px 10px; border-radius:7px; font-size:14px; width:120px;
+  }
+
+  h2.section-title{font-size:14px; color:var(--text-dim); font-weight:600; margin:28px 0 12px;}
+
+  /* --- Insert form --- */
+  .insert-card{display:flex; flex-direction:column; gap:14px;}
+  .field-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .field{flex:1; min-width:140px;}
+  .field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px;}
+  .field input, .field select{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:9px 10px; border-radius:8px; font-size:14px;
+  }
+  .dropzone{
+    border:1.5px dashed var(--line); border-radius:10px; padding:22px; text-align:center;
+    color:var(--text-dim); font-size:13px; cursor:pointer; transition:.15s;
+  }
+  .dropzone:hover{border-color:#3a4c60; color:var(--text);}
+  .dropzone.busy{opacity:.6; pointer-events:none;}
+  .ocr-status{font-size:12px; color:var(--text-dim); min-height:16px;}
+  .btn{
+    background:var(--tu); color:#08150e; border:none; padding:10px 18px; border-radius:8px;
+    font-size:14px; font-weight:600; cursor:pointer; align-self:flex-start;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--line);}
+  .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
+
+  /* --- Tables --- */
+  .tip-block{margin-bottom:26px;}
+  .tip-block h3{font-size:15px; margin:0 0 8px; display:flex; align-items:center; gap:8px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{
+    text-align:left; color:var(--text-dim); font-weight:500; font-size:11px;
+    text-transform:none; padding:6px 8px; border-bottom:1px solid var(--line);
+  }
+  td{padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  td select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:5px 6px; font-size:12.5px;}
+  .num{text-align:right; font-variant-numeric:tabular-nums;}
+  .empty-row td{color:var(--text-dim); font-style:normal; text-align:center; padding:14px;}
+
+  /* toggle esito */
+  .toggle{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    padding:5px 10px; border-radius:20px; font-size:12px; font-weight:600; border:1px solid var(--line);
+  }
+  .toggle .knob{width:9px; height:9px; border-radius:50%;}
+  .toggle.pending{color:var(--text-dim);}
+  .toggle.pending .knob{background:var(--pending);}
+  .toggle.win{color:var(--win); background:rgba(46,194,126,.1); border-color:rgba(46,194,126,.35);}
+  .toggle.win .knob{background:var(--win);}
+  .toggle.lose{color:var(--lose); background:rgba(240,85,59,.1); border-color:rgba(240,85,59,.35);}
+  .toggle.lose .knob{background:var(--lose);}
+
+  .result.win{color:var(--win); font-weight:600;}
+  .result.lose{color:var(--lose); font-weight:600;}
+  .result.pending{color:var(--text-dim);}
+
+  .del{background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:15px; padding:0 4px;}
+  .del:hover{color:var(--lose);}
+
+  /* stats */
+  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px;}
+  @media (max-width:720px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
+  .stat .label{font-size:11.5px; color:var(--text-dim); margin-bottom:6px;}
+  .stat .value{font-size:20px; font-weight:650;}
+
+  footer.tools{
+    position:fixed; bottom:0; left:0; right:0; background:var(--panel); border-top:1px solid var(--line);
+    padding:10px 20px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+  }
+  footer.tools button, footer.tools label{font-size:12.5px;}
+  input[type=file]#import-input{display:none;}
+</style>
 </head>
 <body>
 
-    <h1>Ciao!</h1>
-    <p>Questa è la mia pagina GitHub Pages.</p>
+<header>
+  <h1>Schedina</h1>
+  <nav>
+    <button data-tab="dashboard" class="active">Budget</button>
+    <button data-tab="insert">Inserisci</button>
+    <button data-tab="stats">Storico</button>
+  </nav>
+</header>
 
+<main>
+
+  <!-- ============ TAB 1: DASHBOARD ============ -->
+  <section id="tab-dashboard" class="active">
+    <div class="grid3">
+      <div class="card tip-card tip-ing">
+        <h3><span class="dot dot-ing"></span>Ing</h3>
+        <div class="row"><span>Singola/Doppia</span><span>23,00 €</span></div>
+        <div class="row"><span>Quota ~5</span><span>9,00 €</span></div>
+        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
+        <div class="total"><span>Max giorno</span><span>35,00 €</span></div>
+      </div>
+      <div class="card tip-card tip-vincent">
+        <h3><span class="dot dot-vincent"></span>Vincent</h3>
+        <div class="row"><span>Singola/Doppia</span><span>20,00 €</span></div>
+        <div class="row"><span>Quota ~5</span><span>7,00 €</span></div>
+        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
+        <div class="total"><span>Max giorno</span><span>30,00 €</span></div>
+      </div>
+      <div class="card tip-card tip-tu">
+        <h3><span class="dot dot-tu"></span>Tu (Matteo)</h3>
+        <div class="row"><span>Singola/Doppia</span><span>23,00 €</span></div>
+        <div class="row"><span>Quota ~5</span><span>9,00 €</span></div>
+        <div class="row"><span>Quota ~10</span><span>3,00 €</span></div>
+        <div class="total"><span>Max giorno</span><span>35,00 €</span></div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Bankroll</h2>
+    <div class="card">
+      <div class="bankroll">
+        <div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;">Saldo attuale (stimato)</div>
+          <div class="big" id="saldo-attuale">— €</div>
+        </div>
+        <div>
+          <label>Importo di partenza</label>
+          <input type="number" id="start-amount" step="0.01">
+        </div>
+        <div>
+          <label>Data di partenza</label>
+          <input type="date" id="start-date">
+        </div>
+        <button class="btn secondary" id="save-bankroll">Salva</button>
+      </div>
+      <div style="margin-top:12px; font-size:12px; color:var(--text-dim);">
+        Massimo teorico giornaliero combinato: <strong style="color:var(--text)">100,00 €</strong> (35 + 30 + 35)
+      </div>
+    </div>
+
+    <h2 class="section-title">Speso oggi</h2>
+    <div class="grid3" id="today-usage"></div>
+  </section>
+
+  <!-- ============ TAB 2: INSERT ============ -->
+  <section id="tab-insert">
+    <div class="card insert-card">
+      <div class="field-row">
+        <div class="field">
+          <label>Tipster</label>
+          <select id="f-tipster">
+            <option value="Tu">Tu (Matteo)</option>
+            <option value="Ing">Ing</option>
+            <option value="Vincent">Vincent</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Screenshot schedina (estrae Quota Totale e Importo automaticamente)</label>
+        <div class="dropzone" id="dropzone">Trascina l'immagine qui o clicca per caricarla</div>
+        <input type="file" id="file-input" accept="image/*" style="display:none;">
+        <div class="ocr-status" id="ocr-status"></div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Quota totale</label>
+          <input type="number" id="f-quota" step="0.01" placeholder="es. 3.42">
+        </div>
+        <div class="field">
+          <label>Importo (€)</label>
+          <input type="number" id="f-importo" step="0.01" placeholder="es. 15.00">
+        </div>
+        <div class="field">
+          <label>Categoria</label>
+          <select id="f-categoria">
+            <option>Singola/Doppia</option>
+            <option>Multipla Quota 5</option>
+            <option>Multipla Quota 10</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="btn" id="add-bet">Aggiungi alla tabella</button>
+    </div>
+  </section>
+
+  <!-- ============ TAB 3: STORICO ============ -->
+  <section id="tab-stats">
+    <div class="stat-grid" id="stat-grid"></div>
+    <div id="tables-container"></div>
+  </section>
+
+</main>
+
+<footer class="tools">
+  <button class="btn ghost" id="export-btn">Esporta dati (JSON)</button>
+  <label class="btn ghost" style="cursor:pointer;">Importa dati<input type="file" id="import-input" accept="application/json"></label>
+  <button class="btn ghost" id="reset-btn" style="color:var(--lose); border-color:rgba(240,85,59,.35);">Reset dati</button>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+/* ===================== DATA LAYER ===================== */
+const STORAGE_KEY = 'schedina_tracker_v1';
+const TIPSTERS = ['Tu','Ing','Vincent'];
+
+function loadData(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){ /* fallthrough */ } }
+  return {
+    bankroll: { start: 290, startDate: todayISO() },
+    bets: { Tu: [], Ing: [], Vincent: [] }
+  };
+}
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+let state = loadData();
+
+/* ===================== HELPERS ===================== */
+function parseNumberIT(str){
+  if(str === null || str === undefined) return null;
+  str = String(str).trim().replace(/[€\s]/g,'');
+  if(str.includes(',') && str.includes('.')){
+    str = str.replace(/\./g,'').replace(',', '.');
+  } else if(str.includes(',')){
+    str = str.replace(',', '.');
+  }
+  const n = parseFloat(str);
+  return isNaN(n) ? null : n;
+}
+function fmtEUR(n){
+  const sign = n < 0 ? '-' : '';
+  return sign + Math.abs(n).toFixed(2).replace('.', ',') + ' €';
+}
+function categoryFor(quota){
+  if(quota < 2.5) return 'Singola/Doppia';
+  if(quota < 7) return 'Multipla Quota 5';
+  return 'Multipla Quota 10';
+}
+function betResult(bet){
+  if(bet.esito === 'win') return bet.quota * bet.importo;
+  if(bet.esito === 'lose') return -bet.importo;
+  return 0;
+}
+
+/* ===================== TABS ===================== */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('main section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab === 'stats') renderStats();
+    if(btn.dataset.tab === 'dashboard') renderDashboard();
+  });
+});
+
+/* ===================== DASHBOARD ===================== */
+function renderDashboard(){
+  document.getElementById('start-amount').value = state.bankroll.start;
+  document.getElementById('start-date').value = state.bankroll.startDate;
+
+  let net = 0;
+  TIPSTERS.forEach(t => state.bets[t].forEach(b => net += betResult(b)));
+  const saldo = state.bankroll.start + net;
+  document.getElementById('saldo-attuale').textContent = fmtEUR(saldo);
+
+  const maxByTip = {Ing:35, Vincent:30, Tu:35};
+  const today = todayISO();
+  const container = document.getElementById('today-usage');
+  container.innerHTML = '';
+  TIPSTERS.forEach(t=>{
+    const speso = state.bets[t].filter(b=>b.date===today).reduce((s,b)=>s+b.importo,0);
+    const max = maxByTip[t];
+    const cls = t==='Ing' ? 'tip-ing' : t==='Vincent' ? 'tip-vincent' : 'tip-tu';
+    const dotCls = t==='Ing' ? 'dot-ing' : t==='Vincent' ? 'dot-vincent' : 'dot-tu';
+    const div = document.createElement('div');
+    div.className = 'card tip-card ' + cls;
+    div.innerHTML = `
+      <h3><span class="dot ${dotCls}"></span>${t==='Tu'?'Tu (Matteo)':t}</h3>
+      <div class="total"><span>Speso oggi</span><span>${fmtEUR(speso)} / ${fmtEUR(max)}</span></div>
+    `;
+    container.appendChild(div);
+  });
+}
+document.getElementById('save-bankroll').addEventListener('click', ()=>{
+  state.bankroll.start = parseFloat(document.getElementById('start-amount').value) || 0;
+  state.bankroll.startDate = document.getElementById('start-date').value || todayISO();
+  saveData();
+  renderDashboard();
+});
+
+/* ===================== INSERT ===================== */
+document.getElementById('f-date').value = todayISO();
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+dropzone.addEventListener('click', ()=>fileInput.click());
+dropzone.addEventListener('dragover', e=>{e.preventDefault(); dropzone.style.borderColor='#3a4c60';});
+dropzone.addEventListener('drop', e=>{
+  e.preventDefault();
+  if(e.dataTransfer.files.length) handleImage(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', ()=>{
+  if(fileInput.files.length) handleImage(fileInput.files[0]);
+});
+
+async function handleImage(file){
+  const status = document.getElementById('ocr-status');
+  dropzone.classList.add('busy');
+  status.textContent = 'Lettura immagine in corso…';
+  try{
+    const { data: { text } } = await Tesseract.recognize(file, 'ita+eng');
+    const quotaMatch = text.match(/Quota\s*Totale[^\d]*([\d.,]+)/i);
+    const importoMatch = text.match(/Importo[^\d]*([\d.,]+)/i);
+    const quota = quotaMatch ? parseNumberIT(quotaMatch[1]) : null;
+    const importo = importoMatch ? parseNumberIT(importoMatch[1]) : null;
+
+    if(quota !== null){
+      document.getElementById('f-quota').value = quota;
+      document.getElementById('f-categoria').value = categoryFor(quota);
+    }
+    if(importo !== null) document.getElementById('f-importo').value = importo;
+
+    if(quota === null && importo === null){
+      status.textContent = 'Non ho trovato "Quota Totale" / "Importo" nel testo — inserisci i valori a mano.';
+    } else {
+      status.textContent = `Estratti — Quota: ${quota ?? '—'}, Importo: ${importo ?? '—'}. Controlla prima di aggiungere.`;
+    }
+  }catch(err){
+    status.textContent = 'Errore lettura immagine, inserisci i valori a mano.';
+  }
+  dropzone.classList.remove('busy');
+}
+
+document.getElementById('f-quota').addEventListener('input', (e)=>{
+  const q = parseFloat(e.target.value);
+  if(!isNaN(q)) document.getElementById('f-categoria').value = categoryFor(q);
+});
+
+document.getElementById('add-bet').addEventListener('click', ()=>{
+  const tipster = document.getElementById('f-tipster').value;
+  const date = document.getElementById('f-date').value || todayISO();
+  const quota = parseFloat(document.getElementById('f-quota').value);
+  const importo = parseFloat(document.getElementById('f-importo').value);
+  const categoria = document.getElementById('f-categoria').value;
+
+  if(isNaN(quota) || isNaN(importo)){
+    alert('Inserisci quota e importo validi.');
+    return;
+  }
+
+  state.bets[tipster].push({
+    id: Date.now() + Math.random().toString(16).slice(2),
+    date, categoria, quota, importo, esito: 'pending'
+  });
+  saveData();
+
+  document.getElementById('f-quota').value = '';
+  document.getElementById('f-importo').value = '';
+  document.getElementById('ocr-status').textContent = 'Aggiunta ✓';
+  setTimeout(()=>{ document.getElementById('ocr-status').textContent=''; }, 1500);
+});
+
+/* ===================== STATS / TABLES ===================== */
+function nextEsito(e){
+  return e === 'pending' ? 'win' : e === 'win' ? 'lose' : 'pending';
+}
+function esitoLabel(e){
+  return e === 'win' ? 'Vinta' : e === 'lose' ? 'Persa' : 'In attesa';
+}
+
+function renderStats(){
+  // top stat cards
+  let staked=0, wonGross=0, wins=0, losses=0, pending=0, count=0;
+  TIPSTERS.forEach(t=> state.bets[t].forEach(b=>{
+    count++;
+    staked += b.importo;
+    if(b.esito==='win'){ wins++; wonGross += b.quota*b.importo; }
+    else if(b.esito==='lose'){ losses++; }
+    else pending++;
+  }));
+  const net = wonGross - (staked - state.bets.__dummy ? 0 : 0); // placeholder, recompute below properly
+  let netProfit = 0;
+  TIPSTERS.forEach(t=> state.bets[t].forEach(b=> netProfit += betResult(b)));
+
+  const grid = document.getElementById('stat-grid');
+  grid.innerHTML = `
+    <div class="stat"><div class="label">Schedine totali</div><div class="value">${count}</div></div>
+    <div class="stat"><div class="label">Puntato totale</div><div class="value">${fmtEUR(staked)}</div></div>
+    <div class="stat"><div class="label">Vinte / Perse / Attesa</div><div class="value">${wins} / ${losses} / ${pending}</div></div>
+    <div class="stat"><div class="label">Risultato netto</div><div class="value" style="color:${netProfit>=0?'var(--win)':'var(--lose)'}">${fmtEUR(netProfit)}</div></div>
+  `;
+
+  const container = document.getElementById('tables-container');
+  container.innerHTML = '';
+  TIPSTERS.forEach(t=>{
+    const dotCls = t==='Ing' ? 'dot-ing' : t==='Vincent' ? 'dot-vincent' : 'dot-tu';
+    const block = document.createElement('div');
+    block.className = 'tip-block';
+    const bets = state.bets[t].slice().sort((a,b)=> b.date.localeCompare(a.date));
+    block.innerHTML = `
+      <h3><span class="dot ${dotCls}"></span>${t==='Tu'?'Tu (Matteo)':t}</h3>
+      <table>
+        <thead><tr>
+          <th>Data</th><th>Categ. Scommessa</th><th>Quota</th><th>Importo</th><th>Esito</th><th>Risultato</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${bets.length===0 ? `<tr class="empty-row"><td colspan="7">Nessuna schedina inserita</td></tr>` :
+            bets.map(b=>{
+              const res = betResult(b);
+              const resClass = b.esito==='win' ? 'win' : b.esito==='lose' ? 'lose' : 'pending';
+              const resText = b.esito==='pending' ? '—' : (res>=0? '+':'') + fmtEUR(res).replace('-','');
+              return `
+              <tr data-id="${b.id}" data-tipster="${t}">
+                <td>${b.date}</td>
+                <td>
+                  <select class="cat-select">
+                    <option ${b.categoria==='Singola/Doppia'?'selected':''}>Singola/Doppia</option>
+                    <option ${b.categoria==='Multipla Quota 5'?'selected':''}>Multipla Quota 5</option>
+                    <option ${b.categoria==='Multipla Quota 10'?'selected':''}>Multipla Quota 10</option>
+                  </select>
+                </td>
+                <td class="num">${b.quota}</td>
+                <td class="num">${fmtEUR(b.importo)}</td>
+                <td>
+                  <span class="toggle ${resClass}">
+                    <span class="knob"></span>${esitoLabel(b.esito)}
+                  </span>
+                </td>
+                <td class="num result ${resClass}">${b.esito==='pending' ? '—' : (b.esito==='win'?'+':'-') + fmtEUR(Math.abs(res)).replace('- ','')}</td>
+                <td><button class="del" title="Elimina">✕</button></td>
+              </tr>`;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    `;
+    container.appendChild(block);
+  });
+
+  // wire up interactions
+  container.querySelectorAll('tr[data-id]').forEach(row=>{
+    const id = row.dataset.id, tip = row.dataset.tipster;
+    row.querySelector('.toggle').addEventListener('click', ()=>{
+      const bet = state.bets[tip].find(b=>b.id===id);
+      bet.esito = nextEsito(bet.esito);
+      saveData();
+      renderStats();
+      renderDashboard();
+    });
+    row.querySelector('.cat-select').addEventListener('change', (e)=>{
+      const bet = state.bets[tip].find(b=>b.id===id);
+      bet.categoria = e.target.value;
+      saveData();
+    });
+    row.querySelector('.del').addEventListener('click', ()=>{
+      if(!confirm('Eliminare questa schedina?')) return;
+      state.bets[tip] = state.bets[tip].filter(b=>b.id!==id);
+      saveData();
+      renderStats();
+      renderDashboard();
+    });
+  });
+}
+
+/* ===================== EXPORT / IMPORT / RESET ===================== */
+document.getElementById('export-btn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `schedina-backup-${todayISO()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById('import-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const imported = JSON.parse(reader.result);
+      if(imported.bankroll && imported.bets){
+        state = imported;
+        saveData();
+        renderDashboard();
+        renderStats();
+        alert('Dati importati.');
+      } else {
+        alert('File non valido.');
+      }
+    }catch(err){ alert('Errore nel file JSON.'); }
+  };
+  reader.readAsText(file);
+});
+document.getElementById('reset-btn').addEventListener('click', ()=>{
+  if(!confirm('Cancellare TUTTI i dati salvati in locale?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = loadData();
+  renderDashboard();
+  renderStats();
+});
+
+/* ===================== INIT ===================== */
+renderDashboard();
+</script>
 </body>
 </html>
