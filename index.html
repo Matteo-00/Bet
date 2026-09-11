@@ -191,13 +191,19 @@
     <button data-tab="dashboard" class="active">Budget</button>
     <button data-tab="insert">Inserisci</button>
     <button data-tab="stats">Storico</button>
-    <button data-tab="settings">Impostazioni</button>
   </nav>
 </header>
 
 <main>
 
   <section id="tab-dashboard" class="active">
+    <div class="filter-bar" id="dash-filter-bar">
+      <button data-range="day" class="active">Giorno</button>
+      <button data-range="week">Settimana</button>
+      <button data-range="month">Mese</button>
+      <button data-range="year">Anno</button>
+      <button data-range="all">Dall'inizio</button>
+    </div>
     <div class="grid3" id="budget-cards"></div>
 
     <h2 class="section-title">Bankroll</h2>
@@ -276,18 +282,13 @@
       <button data-range="day" class="active">Giorno</button>
       <button data-range="week">Settimana</button>
       <button data-range="month">Mese</button>
+      <button data-range="year">Anno</button>
       <button data-range="all">Tutto</button>
     </div>
     <div class="stat-grid" id="stat-grid"></div>
     <div id="tables-container"></div>
   </section>
 
-  <section id="tab-settings">
-    <div class="card">
-      <h3 style="margin-top:0;">Dati</h3>
-      <p style="color:var(--text-dim); font-size:13.5px; margin-bottom:0;">I dati sono salvati su Supabase (progetto collegato). Usa Esporta/Importa qui sotto per fare backup locali.</p>
-    </div>
-  </section>
 
 </main>
 
@@ -396,7 +397,16 @@ function inRange(dateStr, range){
   if(range === 'day') return dateStr === todayISO();
   if(range === 'week'){ const diff = (now - d)/86400000; return diff >= 0 && diff < 7; }
   if(range === 'month'){ return d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth(); }
+  if(range === 'year'){ return d.getFullYear()===now.getFullYear(); }
   return true;
+}
+function pctBadgeHtml(net, staked){
+  if(staked <= 0) return `<span style="color:var(--text-dim); font-weight:600;">—</span>`;
+  const pct = (net/staked)*100;
+  const positive = pct >= 0;
+  const color = positive ? 'var(--win)' : 'var(--lose)';
+  const sign = positive ? '+' : '-';
+  return `<span style="color:${color}; font-weight:700;">${sign}${Math.abs(pct).toFixed(0)}%</span> <span style="color:${color}; opacity:.85; font-size:12px;">(${sign}${fmtEUR(Math.abs(net))})</span>`;
 }
 
 /* ===================== TABS ===================== */
@@ -409,6 +419,17 @@ document.querySelectorAll('nav button').forEach(btn=>{
     if(btn.dataset.tab === 'stats') renderStats();
     if(btn.dataset.tab === 'dashboard') renderDashboard();
   });
+});
+
+/* ===================== DASHBOARD FILTER BAR ===================== */
+let currentDashRange = 'day';
+document.getElementById('dash-filter-bar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-range]');
+  if(!btn) return;
+  document.querySelectorAll('#dash-filter-bar button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentDashRange = btn.dataset.range;
+  renderDashboard();
 });
 
 /* ===================== DASHBOARD ===================== */
@@ -446,12 +467,18 @@ function renderDashboard(){
         </div>`;
     }).join('');
     const over = totalSpent > budget.total;
+
+    const rangeBets = state.bets[t].filter(b=>inRange(b.date, currentDashRange));
+    const rangeStaked = rangeBets.reduce((s,b)=>s+b.importo,0);
+    const rangeNet = rangeBets.reduce((s,b)=>s+betResult(b),0);
+
     const div = document.createElement('div');
     div.className = 'card tip-card ' + colorCls[t];
     div.innerHTML = `
       <h3><span class="dot ${dotCls[t]}"></span>${labelName[t]}</h3>
       ${rowsHtml}
       <div class="total ${over?'over':''}"><span>Rimane oggi</span><span>${fmtEUR(Math.max(0,budget.total-totalSpent))} di ${fmtEUR(budget.total)}</span></div>
+      <div class="total" style="border-top:none; padding-top:6px;"><span>Rendimento</span><span>${pctBadgeHtml(rangeNet, rangeStaked)}</span></div>
     `;
     container.appendChild(div);
   });
@@ -575,6 +602,7 @@ function renderStats(){
     <div class="stat"><div class="label">Puntato</div><div class="value">${fmtEUR(staked)}</div></div>
     <div class="stat"><div class="label">Vinte / Perse / Attesa</div><div class="value">${wins} / ${losses} / ${pending}</div></div>
     <div class="stat"><div class="label">Netto</div><div class="value" style="color:${netProfit>=0?'var(--win)':'var(--lose)'}">${fmtEUR(netProfit)}</div></div>
+    <div class="stat"><div class="label">Rendimento</div><div class="value">${pctBadgeHtml(netProfit, staked)}</div></div>
   `;
 
   const container = document.getElementById('tables-container');
@@ -596,6 +624,7 @@ function renderStats(){
           <span>Schedine: <b>${bets.length}</b></span>
           <span>Puntato: <b>${fmtEUR(tStaked)}</b></span>
           <span>Netto: <b style="color:${tNet>=0?'var(--win)':'var(--lose)'}">${fmtEUR(tNet)}</b></span>
+          <span>Rendimento: <b>${pctBadgeHtml(tNet, tStaked)}</b></span>
         </div>
       </div>
       <table>
