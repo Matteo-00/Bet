@@ -47,6 +47,7 @@
     padding:9px 14px; border-radius:8px; font-size:14px; cursor:pointer; transition:.15s;
   }
   nav button.active{ background:var(--panel-2); color:var(--text); border-color:#37485c; }
+  @media (max-width:520px){ nav button{padding:8px 10px; font-size:13px;} }
   main{max-width:960px; margin:0 auto; padding:18px; padding-bottom:90px;}
   section{display:none;}
   section.active{display:block;}
@@ -62,7 +63,7 @@
 
   .tip-card h3{margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:8px;}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block; flex-shrink:0;}
-  .dot-ing{background:var(--ing);} .dot-vincent{background:var(--vincent);} .dot-tu{background:var(--tu);}
+  .dot-ing{background:var(--ing);} .dot-vincent{background:var(--vincent);} .dot-tu{background:var(--tu);} .dot-all{background:var(--text-dim);}
 
   .budget-row{margin:8px 0;}
   .budget-row .lbl{display:flex; justify-content:space-between; font-size:12.5px; color:var(--text-dim); margin-bottom:4px;}
@@ -110,33 +111,44 @@
   .btn.secondary{background:var(--panel-2); color:var(--text); border:1px solid var(--line);}
   .btn.ghost{background:transparent; color:var(--text-dim); border:1px solid var(--line);}
 
-  .filter-bar{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+  .filter-bar{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center;}
   .filter-bar button{
     background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
     padding:8px 14px; border-radius:20px; font-size:13px; cursor:pointer;
   }
   .filter-bar button.active{ background:var(--panel-2); color:var(--text); border-color:#37485c; }
+  .filter-bar .date-wrap{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-dim);
+  }
+  .filter-bar input[type=date]{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    padding:7px 12px; border-radius:20px; font-size:13px; color-scheme:dark;
+  }
+  .filter-bar input[type=date].active{ background:var(--panel-2); color:var(--text); border-color:#37485c; }
 
   .tip-block{margin-bottom:22px; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);}
   .tip-block-head{
     display:flex; align-items:center; justify-content:space-between; padding:12px 16px;
-    background:var(--panel-2); flex-wrap:wrap; gap:6px;
+    background:var(--panel-2); flex-wrap:wrap; gap:8px;
   }
   .tip-block-head .name{display:flex; align-items:center; gap:8px; font-size:15px; font-weight:650;}
-  .tip-block-head .mini-stats{display:flex; gap:14px; font-size:12px; color:var(--text-dim);}
+  .tip-block-head .mini-stats{display:flex; gap:6px 16px; font-size:12px; color:var(--text-dim); flex-wrap:wrap;}
   .tip-block-head .mini-stats b{color:var(--text);}
   .tip-block-ing .tip-block-head{border-left:4px solid var(--ing);}
   .tip-block-vincent .tip-block-head{border-left:4px solid var(--vincent);}
   .tip-block-tu .tip-block-head{border-left:4px solid var(--tu);}
+  .tip-block-all .tip-block-head{border-left:4px solid var(--text-dim);}
   .tip-block table{background:var(--panel);}
 
   table{width:100%; border-collapse:collapse; font-size:13px;}
   th{ text-align:left; color:var(--text-dim); font-weight:500; font-size:11px; padding:8px 12px; border-bottom:1px solid var(--line); }
+  th.num{text-align:right;}
   td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
   tr:last-child td{border-bottom:none;}
   td select{background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:6px; padding:6px 7px; font-size:12.5px;}
   .num{text-align:right; font-variant-numeric:tabular-nums;}
   .empty-row td{color:var(--text-dim); font-style:normal; text-align:center; padding:16px;}
+  tr.total-row td{background:var(--panel-2); font-weight:650;}
 
   .toggle{
     display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none;
@@ -157,11 +169,11 @@
   .del{background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:17px; padding:4px 6px;}
   .del:hover{color:var(--lose);}
 
-  .stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px;}
-  @media (max-width:720px){ .stat-grid{grid-template-columns:repeat(2,1fr);} }
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:20px;}
   .stat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px;}
   .stat .label{font-size:11.5px; color:var(--text-dim); margin-bottom:6px;}
   .stat .value{font-size:19px; font-weight:650;}
+  .stat .sub{font-size:12px; color:var(--text-dim); margin-top:4px; font-weight:500;}
 
   footer.tools{
     position:fixed; bottom:0; left:0; right:0; background:var(--panel); border-top:1px solid var(--line);
@@ -180,6 +192,9 @@
     .tip-block td select{max-width:170px;}
     .tip-block td:last-child{justify-content:flex-end;}
     .tip-block td:last-child::before{content:'';}
+    .tip-block tr.total-row td{background:transparent;}
+    .tip-block tr.total-row{background:var(--panel-2);}
+    .tip-block td.no-label::before{content:'';}
   }
 </style>
 </head>
@@ -191,11 +206,13 @@
     <button data-tab="dashboard" class="active">Budget</button>
     <button data-tab="insert">Inserisci</button>
     <button data-tab="stats">Storico</button>
+    <button data-tab="analytics">Statistiche</button>
   </nav>
 </header>
 
 <main>
 
+  <!-- ===================== BUDGET ===================== -->
   <section id="tab-dashboard" class="active">
     <div class="filter-bar" id="dash-filter-bar">
       <button data-range="day" class="active">Giorno</button>
@@ -212,6 +229,7 @@
         <div>
           <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;">Saldo attuale (stimato)</div>
           <div class="big" id="saldo-attuale">— €</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:4px;" id="saldo-sub"></div>
         </div>
         <div>
           <label>Importo di partenza</label>
@@ -224,11 +242,15 @@
         <button class="btn secondary" id="save-bankroll">Salva</button>
       </div>
       <div style="margin-top:12px; font-size:12px; color:var(--text-dim);">
-        Massimo teorico giornaliero combinato: <strong style="color:var(--text)">100,00 €</strong> (35 + 30 + 35)
+        Massimo teorico giornaliero combinato: <strong style="color:var(--text)">140,00 €</strong> (40 + 60 + 40)
+      </div>
+      <div style="margin-top:6px; font-size:12px; color:var(--text-dim);">
+        Saldo = importo di partenza − tutte le puntate (anche quelle in attesa) + incassi delle schedine vinte
       </div>
     </div>
   </section>
 
+  <!-- ===================== INSERISCI ===================== -->
   <section id="tab-insert">
     <div class="card insert-card">
       <div class="field-row">
@@ -277,6 +299,7 @@
     </div>
   </section>
 
+  <!-- ===================== STORICO ===================== -->
   <section id="tab-stats">
     <div class="filter-bar" id="filter-bar">
       <button data-range="day" class="active">Giorno</button>
@@ -284,11 +307,24 @@
       <button data-range="month">Mese</button>
       <button data-range="year">Anno</button>
       <button data-range="all">Tutto</button>
+      <span class="date-wrap">📅 <input type="date" id="stats-date" title="Scegli un giorno preciso"></span>
     </div>
     <div class="stat-grid" id="stat-grid"></div>
     <div id="tables-container"></div>
   </section>
 
+  <!-- ===================== STATISTICHE ===================== -->
+  <section id="tab-analytics">
+    <div class="filter-bar" id="an-filter-bar">
+      <button data-range="day">Giorno</button>
+      <button data-range="week">Settimana</button>
+      <button data-range="month">Mese</button>
+      <button data-range="year">Anno</button>
+      <button data-range="all" class="active">Tutto</button>
+      <span class="date-wrap">📅 <input type="date" id="an-date" title="Scegli un giorno preciso"></span>
+    </div>
+    <div id="analytics-container"></div>
+  </section>
 
 </main>
 
@@ -308,16 +344,27 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const TIPSTERS = ['Tu','Ing','Vincent'];
 const BUDGETS = {
-  Ing:     {'Singola/Doppia':23, 'Multipla Quota 5':9, 'Multipla Quota 10':3, total:35},
-  Vincent: {'Singola/Doppia':20, 'Multipla Quota 5':7, 'Multipla Quota 10':3, total:30},
-  Tu:      {'Singola/Doppia':23, 'Multipla Quota 5':9, 'Multipla Quota 10':3, total:35},
+  Ing:     {'Singola/Doppia':30, 'Multipla Quota 5':20, 'Multipla Quota 10':10, total:60},
+  Vincent: {'Singola/Doppia':25, 'Multipla Quota 5':10, 'Multipla Quota 10':5,  total:40},
+  Tu:      {'Singola/Doppia':25, 'Multipla Quota 5':10, 'Multipla Quota 10':5,  total:40},
 };
 const CATS = ['Singola/Doppia','Multipla Quota 5','Multipla Quota 10'];
 
 let state = { bankroll: { start: 290, startDate: '2026-09-11' }, bets: { Tu: [], Ing: [], Vincent: [] } };
-let currentRange = 'day';
 
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+/* filtri per ogni schermata: range = day|week|month|year|all|date */
+const filters = {
+  dash:      { range: 'day', date: '' },
+  stats:     { range: 'day', date: '' },
+  analytics: { range: 'all', date: '' },
+};
+
+function todayISO(){
+  const d = new Date();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + m + '-' + day;
+}
 function setSync(status){
   const dot = document.getElementById('sync-dot');
   dot.className = 'sync-dot ' + (status==='ok' ? 'ok' : status==='err' ? 'err' : '');
@@ -379,19 +426,50 @@ function parseNumberIT(str){
   const n = parseFloat(str);
   return isNaN(n) ? null : n;
 }
-function fmtEUR(n){ const sign = n < 0 ? '-' : ''; return sign + Math.abs(n).toFixed(2).replace('.', ',') + ' €'; }
+function fmtEUR(n){
+  const rounded = Math.round(n * 100) / 100;
+  const sign = rounded < 0 ? '-' : '';
+  return sign + Math.abs(rounded).toFixed(2).replace('.', ',') + ' €';
+}
 function categoryFor(quota){
   if(quota < 2.5) return 'Singola/Doppia';
   if(quota < 7) return 'Multipla Quota 5';
   return 'Multipla Quota 10';
 }
+
+/* Netto della singola schedina: vinta = importo*(quota-1), persa = -importo, in attesa = 0 */
 function betResult(bet){
   if(bet.esito === 'win') return bet.importo * (bet.quota - 1);
   if(bet.esito === 'lose') return -bet.importo;
   return 0;
 }
-function inRange(dateStr, range){
+/* Incasso della singola schedina: vinta = importo*quota (puntata + vincita), altrimenti 0 */
+function betReturn(bet){
+  return bet.esito === 'win' ? bet.importo * bet.quota : 0;
+}
+
+/* Statistiche aggregate su una lista di schedine.
+   - staked: tutto quello che è stato puntato (in attesa comprese)
+   - stakedSettled: puntato solo sulle schedine chiuse (vinte o perse)
+   - won: totale vinto = puntata + vincita delle schedine vinte
+   - net: won - stakedSettled (le schedine in attesa NON contano come perse) */
+function calcStats(bets){
+  const s = { count: bets.length, staked: 0, stakedSettled: 0, won: 0, wins: 0, losses: 0, pending: 0, pendingStaked: 0 };
+  bets.forEach(b=>{
+    s.staked += b.importo;
+    if(b.esito === 'win'){ s.wins++; s.stakedSettled += b.importo; s.won += b.importo * b.quota; }
+    else if(b.esito === 'lose'){ s.losses++; s.stakedSettled += b.importo; }
+    else { s.pending++; s.pendingStaked += b.importo; }
+  });
+  s.net = s.won - s.stakedSettled;
+  return s;
+}
+
+/* Filtro per data */
+function inRange(dateStr, f){
+  const range = f.range;
   if(range === 'all') return true;
+  if(range === 'date') return dateStr === f.date;
   const d = new Date(dateStr+'T00:00:00');
   const now = new Date(); now.setHours(0,0,0,0);
   if(range === 'day') return dateStr === todayISO();
@@ -400,13 +478,67 @@ function inRange(dateStr, range){
   if(range === 'year'){ return d.getFullYear()===now.getFullYear(); }
   return true;
 }
-function pctBadgeHtml(net, staked){
-  if(staked <= 0) return `<span style="color:var(--text-dim); font-weight:600;">—</span>`;
-  const pct = (net/staked)*100;
-  const positive = pct >= 0;
+
+/* Diff con segno e colore (+ verde / - rosso) */
+function diffOnlyHtml(net, hasBase){
+  if(!hasBase) return `<span style="color:var(--text-dim); font-weight:600;">—</span>`;
+  const positive = net >= 0;
   const color = positive ? 'var(--win)' : 'var(--lose)';
   const sign = positive ? '+' : '-';
-  return `<span style="color:${color}; font-weight:700;">${sign}${Math.abs(pct).toFixed(0)}%</span> <span style="color:${color}; opacity:.85; font-size:12px;">(${sign}${fmtEUR(Math.abs(net))})</span>`;
+  return `<span style="color:${color}; font-weight:700;">${sign}${fmtEUR(Math.abs(net))}</span>`;
+}
+/* Rendimento: +/- euro e +/- percentuale rispetto al puntato chiuso */
+function pctBadgeHtml(net, base){
+  if(base <= 0) return `<span style="color:var(--text-dim); font-weight:600;">—</span>`;
+  const pct = (net/base)*100;
+  const positive = net >= 0;
+  const color = positive ? 'var(--win)' : 'var(--lose)';
+  const sign = positive ? '+' : '-';
+  const pctTxt = Math.abs(pct).toFixed(1).replace('.', ',');
+  return `<span style="color:${color}; font-weight:700;">${sign}${fmtEUR(Math.abs(net))}</span> <span style="color:${color}; opacity:.9; font-size:12px;">(${sign}${pctTxt}%)</span>`;
+}
+
+/* Saldo: partenza - tutte le puntate (anche in attesa) + incassi delle vinte */
+function computeSaldo(){
+  let spent = 0, returned = 0, pendingStaked = 0;
+  TIPSTERS.forEach(t=> state.bets[t].forEach(b=>{
+    spent += b.importo;
+    returned += betReturn(b);
+    if(b.esito !== 'win' && b.esito !== 'lose') pendingStaked += b.importo;
+  }));
+  return { saldo: state.bankroll.start - spent + returned, spent, returned, pendingStaked };
+}
+
+/* Setup generico di una barra filtri (bottoni + calendario) */
+function setupFilter(barId, dateInputId, key, onChange){
+  const bar = document.getElementById(barId);
+  const dateInput = dateInputId ? document.getElementById(dateInputId) : null;
+  bar.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-range]');
+    if(!btn) return;
+    bar.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    filters[key].range = btn.dataset.range;
+    filters[key].date = '';
+    if(dateInput){ dateInput.value = ''; dateInput.classList.remove('active'); }
+    onChange();
+  });
+  if(dateInput){
+    dateInput.addEventListener('change', ()=>{
+      if(!dateInput.value){
+        // calendario svuotato: torna a "Tutto"
+        dateInput.classList.remove('active');
+        const allBtn = bar.querySelector('button[data-range="all"]');
+        if(allBtn) allBtn.click();
+        return;
+      }
+      bar.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+      dateInput.classList.add('active');
+      filters[key].range = 'date';
+      filters[key].date = dateInput.value;
+      onChange();
+    });
+  }
 }
 
 /* ===================== TABS ===================== */
@@ -418,29 +550,22 @@ document.querySelectorAll('nav button').forEach(btn=>{
     document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab === 'stats') renderStats();
     if(btn.dataset.tab === 'dashboard') renderDashboard();
+    if(btn.dataset.tab === 'analytics') renderAnalytics();
   });
 });
 
-/* ===================== DASHBOARD FILTER BAR ===================== */
-let currentDashRange = 'day';
-document.getElementById('dash-filter-bar').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-range]');
-  if(!btn) return;
-  document.querySelectorAll('#dash-filter-bar button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentDashRange = btn.dataset.range;
-  renderDashboard();
-});
-
 /* ===================== DASHBOARD ===================== */
+setupFilter('dash-filter-bar', null, 'dash', ()=>renderDashboard());
+
 function renderDashboard(){
   document.getElementById('start-amount').value = state.bankroll.start;
   document.getElementById('start-date').value = state.bankroll.startDate;
 
-  let net = 0;
-  TIPSTERS.forEach(t => state.bets[t].forEach(b => net += betResult(b)));
-  const saldo = state.bankroll.start + net;
-  document.getElementById('saldo-attuale').textContent = fmtEUR(saldo);
+  const sd = computeSaldo();
+  document.getElementById('saldo-attuale').textContent = fmtEUR(sd.saldo);
+  document.getElementById('saldo-sub').textContent = sd.pendingStaked > 0
+    ? `Di cui in attesa (già scalati): ${fmtEUR(sd.pendingStaked)}`
+    : '';
 
   const today = todayISO();
   const container = document.getElementById('budget-cards');
@@ -468,9 +593,7 @@ function renderDashboard(){
     }).join('');
     const over = totalSpent > budget.total;
 
-    const rangeBets = state.bets[t].filter(b=>inRange(b.date, currentDashRange));
-    const rangeStaked = rangeBets.reduce((s,b)=>s+b.importo,0);
-    const rangeNet = rangeBets.reduce((s,b)=>s+betResult(b),0);
+    const st = calcStats(state.bets[t].filter(b=>inRange(b.date, filters.dash)));
 
     const div = document.createElement('div');
     div.className = 'card tip-card ' + colorCls[t];
@@ -478,7 +601,7 @@ function renderDashboard(){
       <h3><span class="dot ${dotCls[t]}"></span>${labelName[t]}</h3>
       ${rowsHtml}
       <div class="total ${over?'over':''}"><span>Rimane oggi</span><span>${fmtEUR(Math.max(0,budget.total-totalSpent))} di ${fmtEUR(budget.total)}</span></div>
-      <div class="total" style="border-top:none; padding-top:6px;"><span>Rendimento</span><span>${pctBadgeHtml(rangeNet, rangeStaked)}</span></div>
+      <div class="total" style="border-top:none; padding-top:6px;"><span>Rendimento</span><span>${pctBadgeHtml(st.net, st.stakedSettled)}</span></div>
     `;
     container.appendChild(div);
   });
@@ -570,39 +693,40 @@ document.getElementById('add-bet').addEventListener('click', async ()=>{
   renderDashboard();
 });
 
-/* ===================== FILTER BAR ===================== */
-document.getElementById('filter-bar').addEventListener('click', (e)=>{
-  const btn = e.target.closest('button[data-range]');
-  if(!btn) return;
-  document.querySelectorAll('#filter-bar button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  currentRange = btn.dataset.range;
-  renderStats();
-});
+/* ===================== STORICO ===================== */
+setupFilter('filter-bar', 'stats-date', 'stats', ()=>renderStats());
 
-/* ===================== STATS / TABLES ===================== */
 function nextEsito(e){ return e === 'pending' ? 'win' : e === 'win' ? 'lose' : 'pending'; }
 function esitoLabel(e){ return e === 'win' ? 'Vinta' : e === 'lose' ? 'Persa' : 'In attesa'; }
 
 function renderStats(){
-  let staked=0, wins=0, losses=0, pending=0, count=0, netProfit=0;
   const filtered = {};
+  let all = [];
   TIPSTERS.forEach(t=>{
-    filtered[t] = state.bets[t].filter(b=>inRange(b.date, currentRange));
-    filtered[t].forEach(b=>{
-      count++; staked += b.importo;
-      if(b.esito==='win') wins++; else if(b.esito==='lose') losses++; else pending++;
-      netProfit += betResult(b);
-    });
+    filtered[t] = state.bets[t].filter(b=>inRange(b.date, filters.stats));
+    all = all.concat(filtered[t]);
   });
+  const tot = calcStats(all);
 
   const grid = document.getElementById('stat-grid');
   grid.innerHTML = `
-    <div class="stat"><div class="label">Schedine</div><div class="value">${count}</div></div>
-    <div class="stat"><div class="label">Puntato</div><div class="value">${fmtEUR(staked)}</div></div>
-    <div class="stat"><div class="label">Vinte / Perse / Attesa</div><div class="value">${wins} / ${losses} / ${pending}</div></div>
-    <div class="stat"><div class="label">Netto</div><div class="value" style="color:${netProfit>=0?'var(--win)':'var(--lose)'}">${fmtEUR(netProfit)}</div></div>
-    <div class="stat"><div class="label">Rendimento</div><div class="value">${pctBadgeHtml(netProfit, staked)}</div></div>
+    <div class="stat"><div class="label">Schedine</div><div class="value">${tot.count}</div></div>
+    <div class="stat">
+      <div class="label">Puntato</div>
+      <div class="value">${fmtEUR(tot.staked)}</div>
+      ${tot.pending>0 ? `<div class="sub">di cui in attesa: ${fmtEUR(tot.pendingStaked)}</div>` : ''}
+    </div>
+    <div class="stat">
+      <div class="label">Totale Vinto</div>
+      <div class="value">${fmtEUR(tot.won)}</div>
+      <div class="sub">Diff ${diffOnlyHtml(tot.net, tot.stakedSettled>0)}</div>
+    </div>
+    <div class="stat"><div class="label">Vinte / Perse / Attesa</div><div class="value">${tot.wins} / ${tot.losses} / ${tot.pending}</div></div>
+    <div class="stat">
+      <div class="label">Rendimento</div>
+      <div class="value" style="font-size:17px;">${pctBadgeHtml(tot.net, tot.stakedSettled)}</div>
+      ${tot.pending>0 ? `<div class="sub">le schedine in attesa non sono contate come perse</div>` : ''}
+    </div>
   `;
 
   const container = document.getElementById('tables-container');
@@ -613,30 +737,31 @@ function renderStats(){
 
   TIPSTERS.forEach(t=>{
     const bets = filtered[t].slice().sort((a,b)=> b.date.localeCompare(a.date));
-    const tStaked = bets.reduce((s,b)=>s+b.importo,0);
-    const tNet = bets.reduce((s,b)=>s+betResult(b),0);
+    const st = calcStats(bets);
     const block = document.createElement('div');
     block.className = 'tip-block ' + blockCls[t];
     block.innerHTML = `
       <div class="tip-block-head">
         <div class="name"><span class="dot ${dotCls[t]}"></span>${labelName[t]}</div>
         <div class="mini-stats">
-          <span>Schedine: <b>${bets.length}</b></span>
-          <span>Puntato: <b>${fmtEUR(tStaked)}</b></span>
-          <span>Netto: <b style="color:${tNet>=0?'var(--win)':'var(--lose)'}">${fmtEUR(tNet)}</b></span>
-          <span>Rendimento: <b>${pctBadgeHtml(tNet, tStaked)}</b></span>
+          <span>Schedine: <b>${st.count}</b></span>
+          <span>Puntato: <b>${fmtEUR(st.staked)}</b></span>
+          <span>Totale vinto: <b>${fmtEUR(st.won)}</b> · Diff ${diffOnlyHtml(st.net, st.stakedSettled>0)}</span>
+          <span>Rendimento: ${pctBadgeHtml(st.net, st.stakedSettled)}</span>
         </div>
       </div>
       <table>
         <thead><tr>
-          <th>Data</th><th>Categ. Scommessa</th><th>Quota</th><th>Importo</th><th>Esito</th><th>Netto</th><th></th>
+          <th>Data</th><th>Categ. Scommessa</th><th class="num">Quota</th><th class="num">Importo</th><th>Esito</th><th class="num">Incasso</th><th class="num">Netto</th><th></th>
         </tr></thead>
         <tbody>
-          ${bets.length===0 ? `<tr class="empty-row"><td colspan="7">Nessuna schedina in questo periodo</td></tr>` :
+          ${bets.length===0 ? `<tr class="empty-row"><td colspan="8">Nessuna schedina in questo periodo</td></tr>` :
             bets.map(b=>{
               const res = betResult(b);
+              const inc = betReturn(b);
               const resClass = b.esito==='win' ? 'win' : b.esito==='lose' ? 'lose' : 'pending';
-              const resText = b.esito==='pending' ? '—' : (res>=0?'+':'-') + fmtEUR(Math.abs(res)).replace('- ','');
+              const resText = b.esito==='pending' ? '—' : (res>=0?'+':'-') + fmtEUR(Math.abs(res));
+              const incText = b.esito==='win' ? fmtEUR(inc) : (b.esito==='lose' ? fmtEUR(0) : '—');
               return `
               <tr data-id="${b.id}" data-tipster="${t}">
                 <td data-label="Data">${b.date}</td>
@@ -650,6 +775,7 @@ function renderStats(){
                 <td data-label="Esito">
                   <span class="toggle ${resClass}"><span class="knob"></span>${esitoLabel(b.esito)}</span>
                 </td>
+                <td class="num result ${resClass}" data-label="Incasso">${incText}</td>
                 <td class="num result ${resClass}" data-label="Netto">${resText}</td>
                 <td><button class="del" title="Elimina">✕</button></td>
               </tr>`;
@@ -681,6 +807,70 @@ function renderStats(){
       if(ok){ state.bets[tip] = state.bets[tip].filter(b=>b.id!==id); renderStats(); renderDashboard(); }
     });
   });
+}
+
+/* ===================== STATISTICHE ===================== */
+setupFilter('an-filter-bar', 'an-date', 'analytics', ()=>renderAnalytics());
+
+function analyticsRow(label, s, isTotal){
+  const settled = s.wins + s.losses;
+  const hit = settled > 0 ? Math.round((s.wins/settled)*100) + '%' : '—';
+  return `
+    <tr class="${isTotal ? 'total-row' : ''}">
+      <td data-label="Categoria">${label}</td>
+      <td class="num" data-label="Giocate">${s.count}</td>
+      <td class="num" data-label="Vinte" style="color:var(--win)">${s.wins}</td>
+      <td class="num" data-label="Perse" style="color:var(--lose)">${s.losses}</td>
+      <td class="num" data-label="In attesa">${s.pending}</td>
+      <td class="num" data-label="% vinte">${hit}</td>
+      <td class="num" data-label="Puntato">${fmtEUR(s.staked)}</td>
+      <td class="num" data-label="Totale vinto">${fmtEUR(s.won)}</td>
+      <td class="num" data-label="Diff">${diffOnlyHtml(s.net, s.stakedSettled>0)}</td>
+    </tr>`;
+}
+
+function analyticsBlock(name, blockClass, dotClass, bets){
+  const tot = calcStats(bets);
+  const rows = CATS.map(cat => analyticsRow(cat, calcStats(bets.filter(b=>b.categoria===cat)), false)).join('');
+  const el = document.createElement('div');
+  el.className = 'tip-block ' + blockClass;
+  el.innerHTML = `
+    <div class="tip-block-head">
+      <div class="name"><span class="dot ${dotClass}"></span>${name}</div>
+      <div class="mini-stats">
+        <span>Totale vinto − puntato: <b>${fmtEUR(tot.won)}</b> − <b>${fmtEUR(tot.stakedSettled)}</b></span>
+        <span>Rendimento totale: ${pctBadgeHtml(tot.net, tot.stakedSettled)}</span>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Categoria</th><th class="num">Giocate</th><th class="num">Vinte</th><th class="num">Perse</th><th class="num">In attesa</th>
+        <th class="num">% vinte</th><th class="num">Puntato</th><th class="num">Totale vinto</th><th class="num">Diff</th>
+      </tr></thead>
+      <tbody>
+        ${rows}
+        ${analyticsRow('Totale', tot, true)}
+      </tbody>
+    </table>
+    ${tot.pending>0 ? `<div style="padding:8px 16px 12px; font-size:11.5px; color:var(--text-dim); background:var(--panel);">Le ${tot.pending} schedine in attesa (${fmtEUR(tot.pendingStaked)}) non sono contate come perse in Diff e Rendimento.</div>` : ''}
+  `;
+  return el;
+}
+
+function renderAnalytics(){
+  const container = document.getElementById('analytics-container');
+  container.innerHTML = '';
+  const dotCls = {Ing:'dot-ing', Vincent:'dot-vincent', Tu:'dot-tu'};
+  const blockCls = {Ing:'tip-block-ing', Vincent:'tip-block-vincent', Tu:'tip-block-tu'};
+  const labelName = {Ing:'Ing', Vincent:'Vincent', Tu:'Matteo (Tu)'};
+
+  let all = [];
+  TIPSTERS.forEach(t=>{
+    const bets = state.bets[t].filter(b=>inRange(b.date, filters.analytics));
+    all = all.concat(bets);
+    container.appendChild(analyticsBlock(labelName[t], blockCls[t], dotCls[t], bets));
+  });
+  container.appendChild(analyticsBlock('Totale complessivo', 'tip-block-all', 'dot-all', all));
 }
 
 /* ===================== EXPORT / IMPORT / RESET ===================== */
@@ -715,7 +905,7 @@ document.getElementById('import-input').addEventListener('change', async (e)=>{
         if(error){ alert('Errore import: ' + error.message); }
       }
       await fetchAll();
-      renderDashboard(); renderStats();
+      renderDashboard(); renderStats(); renderAnalytics();
       alert('Dati importati su Supabase.');
     }catch(err){ alert('Errore nel file JSON.'); }
   };
@@ -725,7 +915,7 @@ document.getElementById('reset-btn').addEventListener('click', async ()=>{
   if(!confirm('Cancellare TUTTE le schedine salvate su Supabase?')) return;
   await sb.from('bets').delete().in('tipster', TIPSTERS);
   await fetchAll();
-  renderDashboard(); renderStats();
+  renderDashboard(); renderStats(); renderAnalytics();
 });
 
 /* ===================== INIT ===================== */
