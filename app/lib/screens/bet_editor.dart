@@ -100,6 +100,8 @@ Future<void> startAddBet(BuildContext context, {String? sharedImage}) async {
         : null,
     selections: draft.selections,
     imagePath: kept,
+    ticket: draft.ticket,
+    status: draft.status ?? BetStatus.pending,
   );
   await Navigator.of(context).push(MaterialPageRoute(
     builder: (_) => BetEditor(bet: bet, isNew: true, ocrText: image != null ? draft.rawText : null),

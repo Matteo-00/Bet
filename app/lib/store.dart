@@ -411,19 +411,38 @@ class AppStore extends ChangeNotifier {
       final d = await recognizeSlip(kept);
       final ok = d.stake != null && d.stake! > 0 && d.odds != null && d.odds! >= 1.01;
       final placed = d.placedAt ?? DateTime.now();
-      if (ok) {
-        final dup = bets.any((b) =>
-            (b.stake - d.stake!).abs() < 0.01 &&
-            (b.odds - d.odds!).abs() < 0.01 &&
-            b.placedAt.difference(placed).inMinutes.abs() < 10);
-        if (dup) {
-          msgs.add('Schedina già registrata');
-          try {
-            await File(kept).delete();
-          } catch (_) {}
-          continue;
-        }
+
+      // stessa schedina già salvata? (codice ADM oppure stesso importo/quota/orario)
+      Bet? existing;
+      if (d.ticket != null) existing = bets.where((b) => b.ticket == d.ticket).firstOrNull;
+      if (existing == null && ok) {
+        existing = bets
+            .where((b) =>
+                (b.stake - d.stake!).abs() < 0.01 &&
+                (b.odds - d.odds!).abs() < 0.01 &&
+                b.placedAt.difference(placed).inMinutes.abs() < 10)
+            .firstOrNull;
       }
+      if (existing != null) {
+        try {
+          await File(kept).delete();
+        } catch (_) {}
+        final st = d.status;
+        if (st != null && st != BetStatus.pending && existing.status != st) {
+          existing.status = st;
+          existing.payout = st == BetStatus.won ? existing.potentialWin : null;
+          existing.settledAt = DateTime.now();
+          _enqueue({'k': 'bet', 'id': existing.id});
+          msgs.add(st == BetStatus.won
+              ? 'VINTA! ${_e(existing.stake)} @ ${_o(existing.odds)} → +${_e(existing.profit)}'
+              : 'Persa: −${_e(existing.stake)}');
+        } else {
+          msgs.add('Già registrata: ${_summary(existing)}');
+        }
+        continue;
+      }
+
+      final status = d.status ?? BetStatus.pending;
       final bet = Bet(
         placedAt: placed,
         stake: d.stake ?? 0,
@@ -434,12 +453,17 @@ class AppStore extends ChangeNotifier {
         selections: d.selections,
         imagePath: kept,
         needsReview: !ok,
+        ticket: d.ticket,
+        status: ok ? status : BetStatus.pending,
       );
+      if (ok && status.settled) {
+        bet.settledAt = DateTime.now();
+        bet.payout = status == BetStatus.won ? bet.potentialWin : null;
+      }
       bets.add(bet);
       if (ok) {
         _enqueue({'k': 'bet', 'id': bet.id});
-        msgs.add('Schedina registrata: ${_e(bet.stake)} @ ${bet.odds.toStringAsFixed(2).replaceAll('.', ',')}'
-            ' → ${_e(bet.potentialWin)}');
+        msgs.add('Registrata: ${_summary(bet)}');
       } else {
         msgs.add('Screenshot salvato, ma non ho letto importo/quota: completala in Bet Tracker');
       }
@@ -450,6 +474,17 @@ class AppStore extends ChangeNotifier {
       msgs.add('(sarà caricata online appena c\'è connessione)');
     }
     return msgs.join('\n');
+  }
+
+  String _o(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
+
+  String _summary(Bet b) {
+    final base = '${_e(b.stake)} @ ${_o(b.odds)}';
+    return switch (b.status) {
+      BetStatus.won => '$base · VINTA +${_e(b.profit)}',
+      BetStatus.lost => '$base · persa −${_e(b.stake)}',
+      _ => '$base\nSe vinci: +${_e(b.potentialWin - b.stake)} (incassi ${_e(b.potentialWin)}) · se perdi: −${_e(b.stake)}',
+    };
   }
 
   String _e(double v) => '${v.toStringAsFixed(2).replaceAll('.', ',')} €';

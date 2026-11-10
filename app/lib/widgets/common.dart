@@ -221,16 +221,18 @@ class BetTile extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text(
-              pending ? eur(bet.potentialWin) : signedEur(bet.profit),
-              style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 15,
-                  color: pending ? C.text : C.pl(bet.profit)),
-            ),
-            const SizedBox(height: 3),
-            Text(pending ? 'potenziale' : bet.status.label,
-                style: TextStyle(color: sc, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            if (pending) ...[
+              Text('+${eur(bet.potentialWin - bet.stake)}',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: C.win)),
+              const SizedBox(height: 3),
+              Text('−${eur(bet.stake)}',
+                  style: const TextStyle(color: C.loss, fontSize: 12.5, fontWeight: FontWeight.w700)),
+            ] else ...[
+              Text(signedEur(bet.profit),
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: C.pl(bet.profit))),
+              const SizedBox(height: 3),
+              Text(bet.status.label, style: TextStyle(color: sc, fontSize: 11.5, fontWeight: FontWeight.w700)),
+            ],
           ]),
         ]),
         if (pending && onQuickSettle != null) ...[

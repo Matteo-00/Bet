@@ -32,6 +32,8 @@ class SlipDraft {
   double? odds;
   double? potentialWin;
   DateTime? placedAt;
+  BetStatus? status;
+  String? ticket;
   List<Selection> selections = [];
   String rawText = '';
 
@@ -50,7 +52,9 @@ SlipDraft parseSlipText(String text) {
       .toList();
 
   double? valueFor(int i) {
-    final own = numbersIn(lines[i].replaceAll(RegExp(r'\d{1,2}[/.]\d{1,2}[/.]\d{2,4}'), ''));
+    final own = numbersIn(lines[i]
+        .replaceAll(RegExp(r'\d{1,2}[/.]\d{1,2}[/.]\d{2,4}'), '')
+        .replaceAll(RegExp(r'\d{1,2}:\d{2}'), ''));
     if (own.isNotEmpty) return own.last;
     for (var k = i + 1; k < lines.length && k <= i + 2; k++) {
       final n = numbersIn(lines[k]);
@@ -59,17 +63,28 @@ SlipDraft parseSlipText(String text) {
     return null;
   }
 
+  final dateRe = RegExp(r'\d{1,2}[/.]\d{1,2}[/.]\d{2,4}(?:\s+\d{1,2}[:.]\d{2})?');
   for (var i = 0; i < lines.length; i++) {
     final l = lines[i].toLowerCase();
-    if (d.potentialWin == null &&
-        (l.contains('vincita') || l.contains('potenziale') || l.contains('vinci'))) {
+    if (d.potentialWin == null && (l.contains('vincita') || l.contains('potenziale') || l.contains('vinci '))) {
       d.potentialWin = valueFor(i);
     } else if (d.odds == null && l.contains('quota') && (l.contains('tot') || l.contains('complessiva'))) {
       d.odds = valueFor(i);
     } else if (d.stake == null &&
-        (l.contains('importo') || l.contains('puntata') || l.contains('scommesso') || l.contains('giocato') || l == 'giocata')) {
+        (l.contains('importo') || l.contains('puntata') || l.contains('scommesso') || l.contains('giocato') || l.contains('pagato'))) {
       d.stake = valueFor(i);
     }
+    if (d.status == null && l.contains('stato')) {
+      if (RegExp(r'vincent|vint|pagat|liquidat').hasMatch(l)) {
+        d.status = BetStatus.won;
+      } else if (RegExp(r'perdent|pers[ao]|non vincent').hasMatch(l)) {
+        d.status = BetStatus.lost;
+      } else if (RegExp(r'vendut|in corso|apert|attesa').hasMatch(l)) {
+        d.status = BetStatus.pending;
+      }
+    }
+    final tk = RegExp(r'(?:adm|codice|ticket|id)\s*[:#]?\s*([A-Z0-9]{10,})', caseSensitive: false).firstMatch(lines[i]);
+    if (d.ticket == null && tk != null) d.ticket = tk.group(1)!.toUpperCase();
     final dm = RegExp(r'(\d{1,2})[/.](\d{1,2})[/.](\d{2,4})(?:\D+(\d{1,2})[:.](\d{2}))?')
         .firstMatch(lines[i]);
     if (d.placedAt == null && dm != null) {
@@ -82,13 +97,30 @@ SlipDraft parseSlipText(String text) {
       }
     }
   }
+  if (d.odds == null) {
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().startsWith('quota')) {
+        d.odds = valueFor(i);
+        if (d.odds != null) break;
+      }
+    }
+  }
+  // stato scritto da solo (es. "VINCENTE" su una riga)
+  if (d.status == null) {
+    final up = text.toUpperCase();
+    if (RegExp(r'\bVINCENTE\b|\bVINTA\b|\bPAGATA\b').hasMatch(up)) {
+      d.status = BetStatus.won;
+    } else if (RegExp(r'\bPERDENTE\b|\bPERSA\b').hasMatch(up)) {
+      d.status = BetStatus.lost;
+    }
+  }
 
   // Eventi: righe tipo "Inter - Milan" (lettere da entrambe le parti).
   final eventRe = RegExp(r'^(.*[A-Za-zÀ-ÿ].*?)\s+(?:-|–|—|vs\.?|v)\s+(.*[A-Za-zÀ-ÿ].*)$', caseSensitive: false);
-  final keywordRe = RegExp(r'importo|quota|vincita|bonus|saldo|totale|puntata|codice|data', caseSensitive: false);
+  final keywordRe = RegExp(r'importo|quota|vincita|bonus|saldo|totale|puntata|codice|data|stato|adm|giocata del|calcio|serie', caseSensitive: false);
   for (var i = 0; i < lines.length; i++) {
     final line = lines[i];
-    if (keywordRe.hasMatch(line)) continue;
+    if (keywordRe.hasMatch(line) || dateRe.hasMatch(line)) continue;
     final m = eventRe.firstMatch(line);
     if (m == null) continue;
     if (line.length > 60) continue;

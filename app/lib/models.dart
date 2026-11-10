@@ -88,6 +88,9 @@ class Bet {
   /// Arrivata da una condivisione ma senza importo/quota leggibili.
   bool needsReview;
 
+  /// Codice della giocata (es. ADM di Eplay), serve a riconoscere la stessa schedina.
+  String? ticket;
+
   Bet({
     String? id,
     required this.placedAt,
@@ -103,6 +106,7 @@ class Bet {
     this.autoSettled = false,
     this.remoteId,
     this.needsReview = false,
+    this.ticket,
   })  : id = id ?? newId(),
         selections = selections ?? [];
 
@@ -144,6 +148,7 @@ class Bet {
         'autoSettled': autoSettled,
         'remoteId': remoteId,
         'needsReview': needsReview,
+        'ticket': ticket,
       };
 
   static String _date(DateTime d) =>
@@ -173,6 +178,7 @@ class Bet {
             'selections': selections.map((e) => e.toJson()).toList(),
             'note': note,
             'autoSettled': autoSettled,
+            'ticket': ticket,
           },
       };
 
@@ -211,6 +217,7 @@ class Bet {
       note: '${det['note'] ?? local?.note ?? ''}',
       imagePath: local?.imagePath,
       autoSettled: det['autoSettled'] == true || (local?.autoSettled ?? false),
+      ticket: det['ticket'] ?? local?.ticket,
     );
   }
 
@@ -235,6 +242,7 @@ class Bet {
         autoSettled: j['autoSettled'] == true,
         remoteId: j['remoteId'],
         needsReview: j['needsReview'] == true,
+        ticket: j['ticket'],
       );
 }
 
