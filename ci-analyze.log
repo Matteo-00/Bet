@@ -1,0 +1,5 @@
+Analyzing app...                                                
+
+warning • Unused import: 'stats.dart'. Try removing the import directive • lib/store.dart:13:8 • unused_import
+
+1 issue found. (ran in 10.4s)
