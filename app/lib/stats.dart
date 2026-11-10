@@ -162,9 +162,8 @@ PeriodStats statsFor(Iterable<Bet> bets, Period p) {
 /// Andamento del saldo giorno per giorno (valore a fine giornata).
 List<MapEntry<DateTime, double>> balanceSeries(AppStore store, DateTime from, DateTime to) {
   final events = <MapEntry<DateTime, double>>[];
-  final startDay = dayOf(store.settings.startDate);
   for (final m in store.movements) {
-    if (!m.date.isBefore(startDay)) events.add(MapEntry(m.date, m.amount));
+    events.add(MapEntry(m.date, m.amount));
   }
   for (final b in store.activeBets) {
     events.add(MapEntry(b.placedAt, -b.stake));

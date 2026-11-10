@@ -304,7 +304,8 @@ class AppStore extends ChangeNotifier {
   // Saldo
   // ======================================================================
 
-  bool _inRange(DateTime d) => !d.isBefore(dayOf(settings.startDate));
+  // Il saldo conta tutte le schedine salvate, anche quelle giocate prima della data di inizio.
+  bool _inRange(DateTime d) => true;
 
   Iterable<Bet> get activeBets => bets.where((b) => !b.needsReview && _inRange(b.placedAt));
 
