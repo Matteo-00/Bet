@@ -51,9 +51,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final todayStaked = store.stakedOn(now);
     final limit = store.settings.dailyLimit;
     final notices = store.openNotices;
+    final review = store.reviewBets;
 
     return RefreshIndicator(
       onRefresh: () async {
+        await store.sync();
         await store.syncNotifications();
         widget.onCheckListener();
       },
@@ -152,6 +154,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
 
+            if (review.isNotEmpty) ...[
+              SectionTitle('Da completare (${review.length})'),
+              for (final b in review)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Panel(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => BetEditor(bet: b))),
+                    child: Row(children: [
+                      const Icon(Icons.edit_note_rounded, color: C.pending),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text('Screenshot del ${dateShort(b.placedAt)}: inserisci importo e quota',
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ),
+                      const Icon(Icons.chevron_right_rounded, color: C.faint),
+                    ]),
+                  ),
+                ),
+            ],
+
             // ----- Settimana vs scorsa -----
             SectionTitle('Questa settimana',
                 trailing: TextButton(onPressed: widget.onOpenStats, child: const Text('Statistiche'))),
@@ -207,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: EmptyState(
                   icon: Icons.receipt_long_rounded,
                   title: 'Nessuna schedina in attesa',
-                  text: 'Gioca su Eplay, fai lo screenshot e condividilo con Bet Tracker. Oppure tocca +.',
+                  text: 'Gioca su Eplay, fai lo screenshot e condividilo con Bet Tracker: si registra da sola. Oppure tocca +.',
                   action: FilledButton.icon(
                     onPressed: () => startAddBet(context),
                     icon: const Icon(Icons.add_rounded),

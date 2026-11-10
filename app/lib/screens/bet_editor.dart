@@ -2,26 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models.dart';
+import '../ocr.dart';
 import '../parser.dart';
 import '../store.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
-
-Future<SlipDraft> recognizeSlip(String path) async {
-  final r = TextRecognizer(script: TextRecognitionScript.latin);
-  try {
-    final t = await r.processImage(InputImage.fromFilePath(path));
-    return parseSlipText(t.text);
-  } catch (_) {
-    return SlipDraft();
-  } finally {
-    await r.close();
-  }
-}
 
 /// Avvia l'inserimento: da screenshot (condiviso o scelto) oppure a mano.
 Future<void> startAddBet(BuildContext context, {String? sharedImage}) async {
@@ -210,6 +198,7 @@ class _BetEditorState extends State<BetEditor> {
       ..potentialWinOverride = (_pot != null && (_pot! - st * od).abs() > 0.009) ? _pot : null
       ..placedAt = placedAt
       ..note = note.text.trim()
+      ..needsReview = false
       ..selections = sels
           .map((c) => Selection(
                 event: c.event.text.trim(),
@@ -395,7 +384,7 @@ class _BetEditorState extends State<BetEditor> {
             ),
             const SectionTitle('Esito'),
             Wrap(spacing: 8, runSpacing: 8, children: [
-              for (final s in BetStatus.values)
+              for (final s in const [BetStatus.pending, BetStatus.won, BetStatus.lost])
                 ChoiceChip(
                   label: Text(s.label),
                   selected: status == s,
@@ -405,7 +394,7 @@ class _BetEditorState extends State<BetEditor> {
                   onSelected: (_) => setState(() => status = s),
                 ),
             ]),
-            if (status == BetStatus.won || status == BetStatus.cashout || status == BetStatus.voided) ...[
+            if (status == BetStatus.won) ...[
               const SizedBox(height: 12),
               TextField(
                 controller: payout,

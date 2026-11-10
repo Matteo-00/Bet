@@ -23,6 +23,26 @@ Future<void> main() async {
   store.load();
 }
 
+/// Avviata dal telefono quando condividi uno screenshot con Bet Tracker:
+/// gira in background (senza aprire l'app), legge la schedina e la salva.
+@pragma('vm:entry-point')
+Future<void> shareMain() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  const ch = MethodChannel('bet_tracker/share');
+  String msg;
+  try {
+    Intl.defaultLocale = 'it_IT';
+    await initializeDateFormatting('it');
+    final paths = ((await ch.invokeMethod<List<dynamic>>('getPaths')) ?? const []).map((e) => '$e').toList();
+    final store = AppStore();
+    await store.load(pull: false);
+    msg = paths.isEmpty ? 'Nessuna immagine ricevuta' : await store.registerSharedImages(paths);
+  } catch (e) {
+    msg = 'Bet Tracker: errore nel salvataggio ($e)';
+  }
+  await ch.invokeMethod('done', msg);
+}
+
 class BetTrackerApp extends StatelessWidget {
   const BetTrackerApp({super.key});
   @override

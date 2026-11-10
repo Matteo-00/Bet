@@ -59,7 +59,7 @@ class _BetsListScreenState extends State<BetsListScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               children: [
                 _chip('Tutte', filter == null, () => setState(() => filter = null)),
-                for (final s in [BetStatus.pending, BetStatus.won, BetStatus.lost, BetStatus.cashout, BetStatus.voided])
+                for (final s in [BetStatus.pending, BetStatus.won, BetStatus.lost])
                   _chip(s.label, filter == s, () => setState(() => filter = filter == s ? null : s), color: statusColor(s)),
                 const SizedBox(width: 10),
                 for (final c in BetCategory.values)

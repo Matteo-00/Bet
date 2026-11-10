@@ -165,6 +165,25 @@ class SettingsScreen extends StatelessWidget {
             padding: EdgeInsets.zero,
             child: Column(children: [
               _Row(
+                icon: Icons.cloud_done_outlined,
+                iconColor: store.syncState == SyncState.error
+                    ? C.loss
+                    : (store.pendingOps > 0 ? C.pending : C.primary),
+                title: 'Database Supabase',
+                value: store.syncState == SyncState.error
+                    ? 'Errore'
+                    : store.pendingOps > 0
+                        ? '${store.pendingOps} in attesa'
+                        : (store.lastSync == null ? 'Mai sincronizzato' : 'Aggiornato ${dateTime(store.lastSync!)}'),
+                onTap: () async {
+                  await store.sync();
+                  if (context.mounted) {
+                    toast(context, store.lastError ?? (store.pendingOps == 0 ? 'Tutto sincronizzato' : 'Sei offline'));
+                  }
+                },
+              ),
+              const Divider(height: 1),
+              _Row(
                 icon: Icons.ios_share_rounded,
                 title: 'Esporta backup',
                 value: '',
@@ -204,21 +223,20 @@ class SettingsScreen extends StatelessWidget {
               ),
               const Divider(height: 1),
               _Row(
-                icon: Icons.delete_forever_outlined,
-                iconColor: C.loss,
-                title: 'Cancella tutto',
+                icon: Icons.cloud_download_outlined,
+                title: 'Riscarica dal database',
                 value: '',
                 onTap: () async {
-                  final ok = await _confirm(context, 'Cancellare tutti i dati?',
-                      'Schedine, movimenti e impostazioni verranno eliminati. Esporta prima un backup se ti serve.');
-                  if (ok) await store.resetAll();
+                  final ok = await _confirm(context, 'Riscaricare tutto?',
+                      'La copia sul telefono viene sostituita con i dati su Supabase. Le modifiche non ancora inviate vanno perse.');
+                  if (ok) await store.redownload();
                 },
               ),
             ]),
           ),
           const SizedBox(height: 20),
           const Center(
-            child: Text('Bet Tracker · i dati restano solo sul telefono',
+            child: Text('Bet Tracker · dati su Supabase (stesso database del tracker web)',
                 style: TextStyle(color: C.faint, fontSize: 12)),
           ),
         ],

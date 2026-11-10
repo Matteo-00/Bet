@@ -123,7 +123,7 @@ class PeriodStats {
 PeriodStats statsFor(Iterable<Bet> bets, Period p) {
   final s = PeriodStats();
   for (final b in bets) {
-    if (!p.contains(b.placedAt)) continue;
+    if (b.needsReview || !p.contains(b.placedAt)) continue;
     final day = dayOf(b.placedAt);
     s.count++;
     s.staked += b.stake;
@@ -162,10 +162,11 @@ PeriodStats statsFor(Iterable<Bet> bets, Period p) {
 /// Andamento del saldo giorno per giorno (valore a fine giornata).
 List<MapEntry<DateTime, double>> balanceSeries(AppStore store, DateTime from, DateTime to) {
   final events = <MapEntry<DateTime, double>>[];
+  final startDay = dayOf(store.settings.startDate);
   for (final m in store.movements) {
-    events.add(MapEntry(m.date, m.amount));
+    if (!m.date.isBefore(startDay)) events.add(MapEntry(m.date, m.amount));
   }
-  for (final b in store.bets) {
+  for (final b in store.activeBets) {
     events.add(MapEntry(b.placedAt, -b.stake));
     if (b.status.settled && b.returned != 0) {
       events.add(MapEntry(b.resultDate, b.returned));
@@ -209,7 +210,7 @@ List<OddsBucket> oddsBuckets(Iterable<Bet> bets, Period p) {
     OddsBucket('> 10', 10, double.infinity),
   ];
   for (final b in bets) {
-    if (!p.contains(b.placedAt) || !b.status.settled) continue;
+    if (b.needsReview || !p.contains(b.placedAt) || !b.status.settled) continue;
     final k = buckets.firstWhere((x) => b.odds >= x.min && b.odds < x.max,
         orElse: () => buckets.last);
     k.stats.count++;

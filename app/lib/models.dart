@@ -22,6 +22,12 @@ extension BetCategoryX on BetCategory {
         BetCategory.mid => 'Quota 5',
         BetCategory.high => 'Quota 10',
       };
+  /// Nome usato nella colonna `categoria` del tracker web.
+  String get dbLabel => switch (this) {
+        BetCategory.low => 'Singola/Doppia',
+        BetCategory.mid => 'Multipla Quota 5',
+        BetCategory.high => 'Multipla Quota 10',
+      };
   String get short => switch (this) {
         BetCategory.low => 'S/D',
         BetCategory.mid => 'Q5',
@@ -31,7 +37,7 @@ extension BetCategoryX on BetCategory {
 
 BetCategory categoryForOdds(double odds) {
   if (odds < 2.5) return BetCategory.low;
-  if (odds <= 7) return BetCategory.mid;
+  if (odds < 7) return BetCategory.mid;
   return BetCategory.high;
 }
 
@@ -76,6 +82,12 @@ class Bet {
   String? imagePath;
   bool autoSettled;
 
+  /// id della riga su Supabase (null = non ancora salvata online).
+  String? remoteId;
+
+  /// Arrivata da una condivisione ma senza importo/quota leggibili.
+  bool needsReview;
+
   Bet({
     String? id,
     required this.placedAt,
@@ -89,6 +101,8 @@ class Bet {
     this.note = '',
     this.imagePath,
     this.autoSettled = false,
+    this.remoteId,
+    this.needsReview = false,
   })  : id = id ?? newId(),
         selections = selections ?? [];
 
@@ -128,7 +142,77 @@ class Bet {
         'note': note,
         'imagePath': imagePath,
         'autoSettled': autoSettled,
+        'remoteId': remoteId,
+        'needsReview': needsReview,
       };
+
+  static String _date(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  String get esitoDb => switch (status) {
+        BetStatus.won || BetStatus.cashout => 'win',
+        BetStatus.lost || BetStatus.voided => 'lose',
+        BetStatus.pending => 'pending',
+      };
+
+  /// Riga per la tabella `bets` (stesse colonne del tracker web + `dettagli` facoltativa).
+  Map<String, dynamic> toRow({bool withDetails = true}) => {
+        'tipster': 'Tu',
+        'data': _date(placedAt),
+        'categoria': category.dbLabel,
+        'quota': odds,
+        'importo': stake,
+        'esito': esitoDb,
+        if (withDetails)
+          'dettagli': {
+            'placedAt': placedAt.toIso8601String(),
+            'potentialWin': potentialWinOverride,
+            'payout': payout,
+            'status': status.name,
+            'settledAt': settledAt?.toIso8601String(),
+            'selections': selections.map((e) => e.toJson()).toList(),
+            'note': note,
+            'autoSettled': autoSettled,
+          },
+      };
+
+  factory Bet.fromRow(Map<String, dynamic> r, {Bet? local}) {
+    final det = r['dettagli'] is Map ? Map<String, dynamic>.from(r['dettagli']) : <String, dynamic>{};
+    final esito = '${r['esito'] ?? 'pending'}';
+    var status = esito == 'win'
+        ? BetStatus.won
+        : esito == 'lose'
+            ? BetStatus.lost
+            : BetStatus.pending;
+    final detStatus = BetStatus.values.where((s) => s.name == det['status']).firstOrNull;
+    // lo stato dettagliato vale solo se coerente con l'esito (il web può averlo cambiato)
+    if (detStatus != null && Bet(placedAt: DateTime.now(), stake: 0, odds: 1, status: detStatus).esitoDb == esito) {
+      status = detStatus;
+    }
+    final day = DateTime.tryParse('${r['data']}') ?? DateTime.now();
+    var placed = DateTime.tryParse('${det['placedAt'] ?? ''}') ?? local?.placedAt;
+    if (placed == null || placed.year != day.year || placed.month != day.month || placed.day != day.day) {
+      placed = DateTime(day.year, day.month, day.day, 12);
+    }
+    final settledAt = DateTime.tryParse('${det['settledAt'] ?? ''}') ?? (status.settled ? (local?.settledAt ?? placed) : null);
+    return Bet(
+      id: local?.id,
+      remoteId: '${r['id']}',
+      placedAt: placed,
+      stake: _d(r['importo']),
+      odds: _d(r['quota'], 1),
+      potentialWinOverride: det['potentialWin'] == null ? null : _d(det['potentialWin']),
+      status: status,
+      payout: status.settled && det['payout'] != null ? _d(det['payout']) : null,
+      settledAt: status.settled ? settledAt : null,
+      selections: det['selections'] is List
+          ? (det['selections'] as List).map((e) => Selection.fromJson(Map<String, dynamic>.from(e))).toList()
+          : (local?.selections ?? []),
+      note: '${det['note'] ?? local?.note ?? ''}',
+      imagePath: local?.imagePath,
+      autoSettled: det['autoSettled'] == true || (local?.autoSettled ?? false),
+    );
+  }
 
   factory Bet.fromJson(Map<String, dynamic> j) => Bet(
         id: j['id'],
@@ -149,6 +233,8 @@ class Bet {
         note: j['note'] ?? '',
         imagePath: j['imagePath'],
         autoSettled: j['autoSettled'] == true,
+        remoteId: j['remoteId'],
+        needsReview: j['needsReview'] == true,
       );
 }
 
@@ -158,17 +244,33 @@ class Movement {
   DateTime date;
   double amount;
   String note;
-  Movement({String? id, required this.date, required this.amount, this.note = ''})
+  String? remoteId;
+  Movement({String? id, required this.date, required this.amount, this.note = '', this.remoteId})
       : id = id ?? newId();
+
+  Map<String, dynamic> toRow() => {
+        'data': Bet._date(date),
+        'importo': amount,
+        'nota': note,
+      };
+  factory Movement.fromRow(Map<String, dynamic> r, {Movement? local}) => Movement(
+        id: local?.id,
+        remoteId: '${r['id']}',
+        date: DateTime.tryParse('${r['data']}') ?? DateTime.now(),
+        amount: _d(r['importo']),
+        note: '${r['nota'] ?? ''}',
+      );
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'date': date.toIso8601String(),
         'amount': amount,
         'note': note,
+        'remoteId': remoteId,
       };
   factory Movement.fromJson(Map<String, dynamic> j) => Movement(
         id: j['id'],
+        remoteId: j['remoteId'],
         date: DateTime.tryParse(j['date'] ?? '') ?? DateTime.now(),
         amount: _d(j['amount']),
         note: j['note'] ?? '',

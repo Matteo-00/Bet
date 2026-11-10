@@ -42,19 +42,23 @@ def main():
     mpath = os.path.join(ANDROID, "app/src/main/AndroidManifest.xml")
     m = open(mpath).read()
     m = re.sub(r'android:label="[^"]*"', 'android:label="Bet Tracker"', m, count=1)
-    m = m.replace('android:launchMode="singleTop"', 'android:launchMode="singleTask"')
-    share = """
+    if "android.permission.INTERNET" not in m:
+        m = m.replace("<application", '<uses-permission android:name="android.permission.INTERNET" />\n    <application', 1)
+    service = """
+        <activity
+            android:name=".ShareActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:label="Bet Tracker"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
-            </intent-filter>"""
-    idx = m.find("</intent-filter>")
-    if idx < 0:
-        sys.exit("intent-filter non trovato")
-    idx += len("</intent-filter>")
-    m = m[:idx] + share + m[idx:]
-    service = """
+            </intent-filter>
+        </activity>
         <service
             android:name=".BetNotificationListener"
             android:label="Bet Tracker"

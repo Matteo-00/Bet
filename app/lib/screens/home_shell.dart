@@ -1,7 +1,4 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../native.dart';
 import '../parser.dart';
@@ -23,23 +20,17 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   int tab = 0;
   bool listenerEnabled = true;
-  StreamSubscription? _shareSub;
   AppStore? _store;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    NativeNotifications.listen(() => _store?.syncNotifications());
-    _shareSub = ReceiveSharingIntent.instance.getMediaStream().listen(_onShared, onError: (_) {});
-    ReceiveSharingIntent.instance.getInitialMedia().then((files) {
-      _onShared(files);
-      ReceiveSharingIntent.instance.reset();
-    }).catchError((_) {});
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkListener();
-      _store?.syncNotifications();
-    });
+    NativeNotifications.listen(
+      onNotification: () => _store?.syncNotifications(),
+      onReload: () => _store?.reload(),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkListener());
   }
 
   @override
@@ -62,17 +53,6 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     });
   }
 
-  void _onShared(List<SharedMediaFile> files) {
-    if (files.isEmpty) return;
-    final img = files.firstWhere(
-      (f) => f.type == SharedMediaType.image || RegExp(r'\.(png|jpe?g|webp)$', caseSensitive: false).hasMatch(f.path),
-      orElse: () => files.first,
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) startAddBet(context, sharedImage: img.path);
-    });
-  }
-
   Future<void> _checkListener() async {
     final e = await NativeNotifications.isEnabled();
     if (mounted && e != listenerEnabled) setState(() => listenerEnabled = e);
@@ -82,14 +62,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _checkListener();
-      _store?.syncNotifications();
+      _store?.reload().then((_) => _store?.syncNotifications());
     }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _shareSub?.cancel();
     _store?.removeListener(_onStore);
     super.dispose();
   }
@@ -120,6 +99,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       appBar: AppBar(
         title: Text(_titles[tab]),
         actions: [
+          _SyncIcon(store: store),
           if (tab == 0 && store.openNotices.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -164,6 +144,7 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final budget = TextEditingController();
   final limit = TextEditingController();
+  bool includeOld = true;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +175,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 style: TextStyle(color: C.muted, fontSize: 15.5, height: 1.4),
               ),
               const SizedBox(height: 28),
-              const _Feature(icon: Icons.ios_share_rounded, text: 'Screenshot da Eplay → Condividi → Bet Tracker: importo, quota ed eventi li leggo io.'),
+              const _Feature(icon: Icons.ios_share_rounded, text: 'Screenshot da Eplay → Condividi → Bet Tracker: la schedina si registra da sola, senza aprire l'app.'),
               const _Feature(icon: Icons.notifications_active_rounded, text: 'Quando Eplay ti notifica una vincita, la schedina si segna vinta da sola.'),
               const _Feature(icon: Icons.insights_rounded, text: 'Saldo, rendimento, % vinte e confronto con la settimana o il mese prima.'),
               const SizedBox(height: 24),
@@ -209,6 +190,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(labelText: 'Limite giornaliero (facoltativo)', suffixText: '€'),
               ),
+              if (store.bets.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: includeOld,
+                  onChanged: (v) => setState(() => includeOld = v),
+                  title: Text('Conta le ${store.bets.length} schedine "Tu" già nel database'),
+                  subtitle: Text('Il budget parte dal ${dateShort(_earliest(store))}; altrimenti da oggi.'),
+                ),
+              ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: () async {
@@ -220,7 +211,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   await store.updateSettings((s) {
                     s.startingBankroll = b;
                     s.dailyLimit = parseNumber(limit.text) ?? 0;
-                    s.startDate = DateTime.now();
+                    s.startDate = includeOld && store.bets.isNotEmpty ? _earliest(store) : DateTime.now();
                     s.onboarded = true;
                   });
                 },
@@ -232,6 +223,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
+
+DateTime _earliest(AppStore s) {
+  var d = DateTime.now();
+  for (final b in s.bets) {
+    if (b.placedAt.isBefore(d)) d = b.placedAt;
+  }
+  return DateTime(d.year, d.month, d.day);
 }
 
 class _Feature extends StatelessWidget {
@@ -251,4 +250,27 @@ class _Feature extends StatelessWidget {
           Expanded(child: Text(text, style: const TextStyle(height: 1.4))),
         ]),
       );
+}
+
+class _SyncIcon extends StatelessWidget {
+  final AppStore store;
+  const _SyncIcon({required this.store});
+  @override
+  Widget build(BuildContext context) {
+    final (IconData icon, Color color, String tip) = switch (store.syncState) {
+      SyncState.syncing => (Icons.cloud_sync_rounded, C.muted, 'Sincronizzo…'),
+      SyncState.offline => (Icons.cloud_off_rounded, C.pending, 'Offline: ${store.pendingOps} modifiche in attesa'),
+      SyncState.error => (Icons.error_outline_rounded, C.loss, store.lastError ?? 'Errore database'),
+      SyncState.idle => (store.pendingOps > 0 ? Icons.cloud_upload_rounded : Icons.cloud_done_rounded,
+          store.pendingOps > 0 ? C.pending : C.primary, 'Sincronizzato con il database'),
+    };
+    return IconButton(
+      tooltip: tip,
+      icon: Icon(icon, color: color, size: 22),
+      onPressed: () async {
+        toast(context, tip);
+        await store.sync();
+      },
+    );
+  }
 }

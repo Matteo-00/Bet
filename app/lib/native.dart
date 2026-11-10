@@ -6,9 +6,10 @@ import 'package:flutter/services.dart';
 class NativeNotifications {
   static const _ch = MethodChannel('bet_tracker/notifications');
 
-  static void listen(void Function() onChanged) {
+  static void listen({required void Function() onNotification, required void Function() onReload}) {
     _ch.setMethodCallHandler((call) async {
-      if (call.method == 'changed') onChanged();
+      if (call.method == 'changed') onNotification();
+      if (call.method == 'reload') onReload();
       return null;
     });
   }
