@@ -175,7 +175,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 style: TextStyle(color: C.muted, fontSize: 15.5, height: 1.4),
               ),
               const SizedBox(height: 28),
-              const _Feature(icon: Icons.ios_share_rounded, text: 'Screenshot da Eplay → Condividi → Bet Tracker: la schedina si registra da sola, senza aprire l'app.'),
+              const _Feature(icon: Icons.ios_share_rounded, text: 'Screenshot da Eplay → Condividi → Bet Tracker: la schedina si registra da sola, senza aprire l\'app.'),
               const _Feature(icon: Icons.notifications_active_rounded, text: 'Quando Eplay ti notifica una vincita, la schedina si segna vinta da sola.'),
               const _Feature(icon: Icons.insights_rounded, text: 'Saldo, rendimento, % vinte e confronto con la settimana o il mese prima.'),
               const SizedBox(height: 24),
