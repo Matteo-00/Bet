@@ -1,0 +1,80 @@
+name: App Android (APK)
+
+on:
+  push:
+    branches: [app-mobile, main]
+    paths: ['app/**', '.github/workflows/app-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Prepara progetto Android
+        working-directory: app
+        run: |
+          flutter --version | tee ../ci-flutter.log
+          python3 tool/prepare_android.py 2>&1 | tee ../ci-prepare.log
+
+      - name: Dipendenze
+        working-directory: app
+        run: flutter pub get 2>&1 | tee ../ci-pub.log
+
+      - name: Analisi codice
+        working-directory: app
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee ../ci-analyze.log
+
+      - name: Build APK
+        working-directory: app
+        run: |
+          flutter build apk --release \
+            --build-name=1.0.${{ github.run_number }} \
+            --build-number=${{ github.run_number }} 2>&1 | tee ../ci-build.log
+          cp build/app/outputs/flutter-apk/app-release.apk ../bet-tracker.apk
+
+      - name: Pubblica release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-latest
+          name: Bet Tracker (ultima versione)
+          body: |
+            Versione 1.0.${{ github.run_number }}
+            Apri questa pagina dal telefono, scarica **bet-tracker.apk** e installalo.
+          files: bet-tracker.apk
+          make_latest: true
+
+      - name: Salva log
+        if: always()
+        run: |
+          mkdir -p /tmp/ci && cp ci-*.log /tmp/ci/ 2>/dev/null || true
+          echo "${{ job.status }} ${{ github.sha }} run ${{ github.run_number }}" > /tmp/ci/status.txt
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git checkout --orphan ci-logs-tmp
+          git rm -rfq --cached . || true
+          cp /tmp/ci/* .
+          git add -f ci-*.log status.txt
+          git commit -qm "log run ${{ github.run_number }}"
+          git push -f origin HEAD:ci-logs

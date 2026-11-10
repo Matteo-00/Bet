@@ -1,0 +1,28 @@
+name: bet_tracker
+description: Tracker personale delle schedine con statistiche, grafici e import da screenshot/notifiche Eplay.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  fl_chart: ^1.0.0
+  path_provider: ^2.1.4
+  image_picker: ^1.1.2
+  google_mlkit_text_recognition: ^0.15.0
+  receive_sharing_intent: ^1.8.1
+  share_plus: ^11.0.0
+  file_picker: ^10.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
